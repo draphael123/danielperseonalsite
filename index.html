@@ -36,6 +36,30 @@
             </div>
         </div>
 
+        <div class="search-sort-container">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    class="search-input" 
+                    placeholder="Search activities..."
+                    autocomplete="off"
+                >
+                <button class="search-clear-btn" id="search-clear-btn" style="display: none;">✕</button>
+            </div>
+            <div class="sort-controls">
+                <label for="sort-select" class="sort-label">Sort:</label>
+                <select id="sort-select" class="sort-select">
+                    <option value="default">Default</option>
+                    <option value="alphabetical">A-Z</option>
+                    <option value="rating-high">Rating (High to Low)</option>
+                    <option value="rating-low">Rating (Low to High)</option>
+                    <option value="unrated-first">Unrated First</option>
+                </select>
+            </div>
+        </div>
+
         <div class="filter-buttons">
             <button class="filter-btn active" data-filter="all">All</button>
             <button class="filter-btn" data-filter="level3">Level 3 (Probable)</button>
@@ -43,6 +67,22 @@
             <button class="filter-btn" data-filter="level1">Level 1 (Unlikely)</button>
             <button class="filter-btn" data-filter="checked">Checked Off</button>
             <button class="filter-btn" data-filter="unrated">Unrated</button>
+        </div>
+
+        <div class="quick-actions">
+            <button class="action-btn" id="export-btn" title="Export your data (Ctrl+E)">
+                <span>💾</span>
+                <span>Export</span>
+            </button>
+            <button class="action-btn" id="import-btn" title="Import data (Ctrl+I)">
+                <span>📥</span>
+                <span>Import</span>
+            </button>
+            <input type="file" id="import-file-input" accept=".json" style="display: none;">
+            <button class="action-btn" id="clear-all-btn" title="Clear all ratings">
+                <span>🗑️</span>
+                <span>Clear All</span>
+            </button>
         </div>
 
         <div class="suggestions-container" id="suggestions-container">

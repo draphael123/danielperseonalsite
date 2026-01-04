@@ -941,12 +941,83 @@ function saveState() {
     updateFilter();
 }
 
+// Get filtered and sorted activities
+function getFilteredActivities() {
+    let filtered = [...activities];
+    
+    // Apply search filter
+    if (currentSearch) {
+        const searchLower = currentSearch.toLowerCase();
+        filtered = filtered.filter(activity => 
+            activity.toLowerCase().includes(searchLower)
+        );
+    }
+    
+    // Apply rating filter
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(activity => {
+            const state = activityState[activity] || { checked: false, enjoymentLevel: null };
+            switch (currentFilter) {
+                case 'level3':
+                    return state.enjoymentLevel === 3;
+                case 'level2':
+                    return state.enjoymentLevel === 2;
+                case 'level1':
+                    return state.enjoymentLevel === 1;
+                case 'checked':
+                    return state.checked;
+                case 'unrated':
+                    return !state.checked && state.enjoymentLevel === null;
+                default:
+                    return true;
+            }
+        });
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+        const stateA = activityState[a] || { checked: false, enjoymentLevel: null };
+        const stateB = activityState[b] || { checked: false, enjoymentLevel: null };
+        
+        switch (currentSort) {
+            case 'alphabetical':
+                return a.localeCompare(b);
+            case 'rating-high':
+                const ratingA = stateA.enjoymentLevel || 0;
+                const ratingB = stateB.enjoymentLevel || 0;
+                if (ratingA !== ratingB) return ratingB - ratingA;
+                return a.localeCompare(b);
+            case 'rating-low':
+                const ratingALow = stateA.enjoymentLevel || 0;
+                const ratingBLow = stateB.enjoymentLevel || 0;
+                if (ratingALow !== ratingBLow) return ratingALow - ratingBLow;
+                return a.localeCompare(b);
+            case 'unrated-first':
+                const hasRatingA = stateA.enjoymentLevel !== null || stateA.checked;
+                const hasRatingB = stateB.enjoymentLevel !== null || stateB.checked;
+                if (hasRatingA !== hasRatingB) return hasRatingA ? 1 : -1;
+                return a.localeCompare(b);
+            default:
+                return 0; // Keep original order
+        }
+    });
+    
+    return filtered;
+}
+
 // Render activities
 function renderActivities() {
     const list = document.getElementById('activities-list');
     list.innerHTML = '';
     
-    activities.forEach((activity, index) => {
+    const filteredActivities = getFilteredActivities();
+    
+    if (filteredActivities.length === 0) {
+        list.innerHTML = '<li class="no-results">No activities found. Try adjusting your search or filters.</li>';
+        return;
+    }
+    
+    filteredActivities.forEach((activity, index) => {
         const state = activityState[activity] || { checked: false, enjoymentLevel: null };
         const item = document.createElement('li');
         item.className = 'activity-item';
@@ -1089,53 +1160,16 @@ function animateValue(id, start, end) {
     requestAnimationFrame(update);
 }
 
+// Search and Sort functionality
+let currentSearch = '';
+let currentSort = 'default';
+
 // Filter functionality
 let currentFilter = 'all';
 
 function updateFilter() {
-    document.querySelectorAll('.activity-item').forEach(item => {
-        const activity = item.querySelector('.activity-text').textContent;
-        const state = activityState[activity] || { checked: false, enjoymentLevel: null };
-        
-        item.classList.remove('hidden');
-        
-        switch (currentFilter) {
-            case 'level3':
-                // Show only level 3 activities
-                if (state.enjoymentLevel !== 3) {
-                    item.classList.add('hidden');
-                }
-                break;
-            case 'level2':
-                // Show only level 2 activities
-                if (state.enjoymentLevel !== 2) {
-                    item.classList.add('hidden');
-                }
-                break;
-            case 'level1':
-                // Show only level 1 activities
-                if (state.enjoymentLevel !== 1) {
-                    item.classList.add('hidden');
-                }
-                break;
-            case 'checked':
-                // Show only checked off activities
-                if (!state.checked) {
-                    item.classList.add('hidden');
-                }
-                break;
-            case 'unrated':
-                // Show activities with no enjoyment level and not checked
-                if (state.enjoymentLevel !== null || state.checked) {
-                    item.classList.add('hidden');
-                }
-                break;
-            case 'all':
-            default:
-                // Show all activities
-                break;
-        }
-    });
+    // Re-render activities with current filters
+    renderActivities();
 }
 
 // Filter button handlers
