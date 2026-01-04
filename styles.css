@@ -16,6 +16,37 @@ body {
     overflow-x: hidden;
 }
 
+.sync-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.sync-status.success {
+    opacity: 1;
+    transform: translateY(0);
+    background: linear-gradient(135deg, #4caf50 0%, #43a047 100%);
+    color: white;
+}
+
+.sync-status.error {
+    opacity: 1;
+    transform: translateY(0);
+    background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+    color: white;
+}
+
 body::before {
     content: '';
     position: fixed;

@@ -909,11 +909,32 @@ let activities = [
 // State management
 let activityState = {};
 
-// Initialize state from localStorage or create new
-function initState() {
+// Initialize state from localStorage or cloud, then create new if needed
+async function initState() {
+    // First, try to load from cloud (async)
+    const cloudLoaded = await loadFromCloud();
+    
+    // Then load from localStorage (synchronous, immediate)
     const saved = localStorage.getItem('activityState');
     if (saved) {
-        activityState = JSON.parse(saved);
+        const localState = JSON.parse(saved);
+        // Merge cloud and local data (cloud takes precedence if both exist)
+        if (cloudLoaded) {
+            // Cloud data already merged in loadFromCloud
+            // Just ensure all activities have state entries
+            activities.forEach(activity => {
+                if (!activityState[activity]) {
+                    activityState[activity] = localState[activity] || {
+                        checked: false,
+                        enjoymentLevel: null
+                    };
+                }
+            });
+        } else {
+            // No cloud data, use local
+            activityState = localState;
+        }
+        
         // Migrate old starred property to enjoymentLevel if needed
         Object.keys(activityState).forEach(activity => {
             if (activityState[activity].starred && !activityState[activity].enjoymentLevel) {
@@ -924,7 +945,8 @@ function initState() {
                 delete activityState[activity].starred;
             }
         });
-    } else {
+    } else if (!cloudLoaded) {
+        // No local or cloud data, initialize fresh
         activities.forEach(activity => {
             activityState[activity] = {
                 checked: false,
@@ -932,13 +954,127 @@ function initState() {
             };
         });
     }
+    
+    // Save initial state to ensure sync
+    localStorage.setItem('activityState', JSON.stringify(activityState));
 }
 
-// Save state to localStorage
-function saveState() {
+// Save state to localStorage and cloud
+async function saveState() {
+    // Save to localStorage immediately (fast, local backup)
     localStorage.setItem('activityState', JSON.stringify(activityState));
+    localStorage.setItem('activities', JSON.stringify(activities));
+    
+    // Try to save to cloud (async, non-blocking)
+    try {
+        await saveToCloud();
+    } catch (error) {
+        console.warn('Cloud save failed, using localStorage only:', error);
+        // Continue with localStorage - it's fine if cloud save fails
+    }
+    
     updateStats();
     updateFilter();
+}
+
+// Save data to cloud storage
+async function saveToCloud() {
+    const userId = getUserId();
+    const data = {
+        activities: activities,
+        activityState: activityState,
+        userId: userId,
+        timestamp: new Date().toISOString()
+    };
+    
+    try {
+        const response = await fetch('/api/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save to cloud');
+        }
+        
+        const result = await response.json();
+        showSyncStatus('Saved to cloud', 'success');
+        return result;
+    } catch (error) {
+        // Silently fail - localStorage is the primary storage
+        throw error;
+    }
+}
+
+// Load data from cloud storage
+async function loadFromCloud() {
+    const userId = getUserId();
+    
+    try {
+        const response = await fetch(`/api/load?userId=${userId}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load from cloud');
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            // Merge cloud data with local data
+            if (result.data.activities) {
+                result.data.activities.forEach(activity => {
+                    if (!activities.includes(activity)) {
+                        activities.push(activity);
+                    }
+                });
+            }
+            
+            if (result.data.activityState) {
+                Object.assign(activityState, result.data.activityState);
+            }
+            
+            showSyncStatus('Loaded from cloud', 'success');
+            return true;
+        }
+        
+        return false;
+    } catch (error) {
+        console.warn('Cloud load failed, using localStorage:', error);
+        return false;
+    }
+}
+
+// Get or create user ID
+function getUserId() {
+    let userId = localStorage.getItem('userId');
+    if (!userId) {
+        userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('userId', userId);
+    }
+    return userId;
+}
+
+// Show sync status
+function showSyncStatus(message, type) {
+    // Create or update sync status indicator
+    let statusEl = document.getElementById('sync-status');
+    if (!statusEl) {
+        statusEl = document.createElement('div');
+        statusEl.id = 'sync-status';
+        statusEl.className = 'sync-status';
+        document.body.appendChild(statusEl);
+    }
+    
+    statusEl.textContent = message;
+    statusEl.className = `sync-status ${type}`;
+    
+    setTimeout(() => {
+        statusEl.className = 'sync-status';
+        statusEl.textContent = '';
+    }, 2000);
 }
 
 // Get filtered and sorted activities
@@ -1473,12 +1609,23 @@ saveState = function() {
     }
 };
 
-// Initialize
-loadActivities();
-initState();
-renderActivities();
-updateStats();
-initSuggestions();
+// Initialize (async)
+async function initialize() {
+    loadActivities();
+    await initState(); // Wait for state initialization
+    initSearch();
+    initSort();
+    initQuickActions();
+    renderActivities();
+    updateStats();
+    initSuggestions();
+    
+    // Show sync indicator
+    showSyncStatus('Synced', 'success');
+}
+
+// Start initialization
+initialize();
 
 // Add form event listener
 document.getElementById('add-activity-form').addEventListener('submit', handleFormSubmit);
