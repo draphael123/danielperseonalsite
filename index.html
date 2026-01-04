@@ -13,26 +13,39 @@
             <p class="subtitle">Check off activities with no interest • Set enjoyment level: 1 (unlikely), 2 (possible), 3 (probable)</p>
         </header>
         
-        <div class="stats">
-            <div class="stat-item">
-                <span class="stat-label">Total:</span>
-                <span class="stat-value" id="total-count">0</span>
+        <div class="header-controls">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total:</span>
+                    <span class="stat-value" id="total-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Level 3:</span>
+                    <span class="stat-value" id="level3-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Level 2:</span>
+                    <span class="stat-value" id="level2-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Level 1:</span>
+                    <span class="stat-value" id="level1-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Checked:</span>
+                    <span class="stat-value" id="checked-count">0</span>
+                </div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Level 3 (Probable):</span>
-                <span class="stat-value" id="level3-count">0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Level 2 (Possible):</span>
-                <span class="stat-value" id="level2-count">0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Level 1 (Unlikely):</span>
-                <span class="stat-value" id="level1-count">0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Checked off:</span>
-                <span class="stat-value" id="checked-count">0</span>
+            <div class="header-actions">
+                <button class="theme-toggle-btn" id="theme-toggle" title="Toggle dark mode">
+                    <span id="theme-icon">🌙</span>
+                </button>
+                <button class="share-btn" id="share-btn" title="Share your list">
+                    <span>🔗</span>
+                </button>
+                <button class="print-btn" id="print-btn" title="Print/Export PDF">
+                    <span>🖨️</span>
+                </button>
             </div>
         </div>
 
@@ -44,15 +57,31 @@
                 </button>
                 <button class="tab-btn" data-tab="activities">
                     <span>📋</span>
-                    <span>List of Activities</span>
+                    <span>Activities</span>
+                </button>
+                <button class="tab-btn" data-tab="favorites">
+                    <span>⭐</span>
+                    <span>Favorites</span>
+                </button>
+                <button class="tab-btn" data-tab="categories">
+                    <span>📁</span>
+                    <span>Categories</span>
                 </button>
                 <button class="tab-btn" data-tab="checked">
                     <span>✅</span>
-                    <span>Checked Off</span>
+                    <span>Checked</span>
+                </button>
+                <button class="tab-btn" data-tab="statistics">
+                    <span>📊</span>
+                    <span>Statistics</span>
+                </button>
+                <button class="tab-btn" data-tab="calendar">
+                    <span>📅</span>
+                    <span>Calendar</span>
                 </button>
                 <button class="tab-btn" data-tab="chat">
                     <span>💬</span>
-                    <span>Notes & Chat</span>
+                    <span>Notes</span>
                 </button>
             </div>
 
@@ -119,42 +148,155 @@
             </div>
 
             <div class="tab-content" id="tab-activities">
-                <div class="search-sort-container">
-                    <div class="search-box">
-                        <span class="search-icon">🔍</span>
-                        <input 
-                            type="text" 
-                            id="search-input" 
-                            class="search-input" 
-                            placeholder="Search activities..."
-                            autocomplete="off"
-                        >
-                        <button class="search-clear-btn" id="search-clear-btn" style="display: none;">✕</button>
+                <div class="bulk-actions-bar" id="bulk-actions-bar" style="display: none;">
+                    <span class="bulk-selection-count" id="bulk-selection-count">0 selected</span>
+                    <div class="bulk-actions">
+                        <button class="bulk-action-btn" id="bulk-check-btn">Check Selected</button>
+                        <button class="bulk-action-btn" id="bulk-uncheck-btn">Uncheck Selected</button>
+                        <button class="bulk-action-btn" id="bulk-rate-3-btn">Rate as 3</button>
+                        <button class="bulk-action-btn" id="bulk-rate-2-btn">Rate as 2</button>
+                        <button class="bulk-action-btn" id="bulk-rate-1-btn">Rate as 1</button>
+                        <button class="bulk-action-btn" id="bulk-clear-btn">Clear Selection</button>
                     </div>
-                    <div class="sort-controls">
-                        <label for="sort-select" class="sort-label">Sort:</label>
-                        <select id="sort-select" class="sort-select">
-                            <option value="default">Default</option>
-                            <option value="alphabetical">A-Z</option>
-                            <option value="rating-high">Rating (High to Low)</option>
-                            <option value="rating-low">Rating (Low to High)</option>
-                            <option value="unrated-first">Unrated First</option>
-                        </select>
+                </div>
+                <div class="advanced-search-container">
+                    <div class="search-sort-container">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input 
+                                type="text" 
+                                id="search-input" 
+                                class="search-input" 
+                                placeholder="Search activities..."
+                                autocomplete="off"
+                            >
+                            <button class="search-clear-btn" id="search-clear-btn" style="display: none;">✕</button>
+                        </div>
+                        <div class="sort-controls">
+                            <label for="sort-select" class="sort-label">Sort:</label>
+                            <select id="sort-select" class="sort-select">
+                                <option value="default">Default</option>
+                                <option value="alphabetical">A-Z</option>
+                                <option value="rating-high">Rating (High to Low)</option>
+                                <option value="rating-low">Rating (Low to High)</option>
+                                <option value="unrated-first">Unrated First</option>
+                                <option value="recently-rated">Recently Rated</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="advanced-filters" id="advanced-filters">
+                        <button class="filter-toggle-btn" id="filter-toggle-btn">🔽 Advanced Filters</button>
+                        <div class="advanced-filters-content" id="advanced-filters-content" style="display: none;">
+                            <div class="filter-group">
+                                <label>Category:</label>
+                                <select id="category-filter" class="filter-select">
+                                    <option value="">All Categories</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Tags:</label>
+                                <input type="text" id="tag-filter" class="filter-input" placeholder="Filter by tags...">
+                            </div>
+                            <div class="filter-group">
+                                <label>Date Range:</label>
+                                <input type="date" id="date-from" class="filter-input">
+                                <span>to</span>
+                                <input type="date" id="date-to" class="filter-input">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="filter-buttons">
                     <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="level3">Level 3 (Probable)</button>
-                    <button class="filter-btn" data-filter="level2">Level 2 (Possible)</button>
-                    <button class="filter-btn" data-filter="level1">Level 1 (Unlikely)</button>
-                    <button class="filter-btn" data-filter="checked">Checked Off</button>
+                    <button class="filter-btn" data-filter="level3">Level 3</button>
+                    <button class="filter-btn" data-filter="level2">Level 2</button>
+                    <button class="filter-btn" data-filter="level1">Level 1</button>
+                    <button class="filter-btn" data-filter="checked">Checked</button>
                     <button class="filter-btn" data-filter="unrated">Unrated</button>
+                    <button class="filter-btn" id="bulk-select-toggle">Select Multiple</button>
                 </div>
 
                 <ul class="activities-list" id="activities-list">
                     <!-- Activities will be populated by JavaScript -->
                 </ul>
+            </div>
+
+            <div class="tab-content" id="tab-favorites">
+                <div class="tab-header">
+                    <h2>⭐ Favorites & Quick Access</h2>
+                    <p>Your top-rated activities (Level 3) and frequently accessed items</p>
+                </div>
+                <div class="favorites-grid" id="favorites-grid">
+                    <!-- Favorites will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-categories">
+                <div class="tab-header">
+                    <h2>📁 Categories</h2>
+                    <p>Browse activities organized by category</p>
+                </div>
+                <div class="categories-grid" id="categories-grid">
+                    <!-- Categories will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-statistics">
+                <div class="tab-header">
+                    <h2>📊 Statistics & Analytics</h2>
+                    <p>Visual insights into your activity preferences</p>
+                </div>
+                <div class="stats-dashboard">
+                    <div class="chart-container">
+                        <h3>Rating Distribution</h3>
+                        <div class="chart" id="rating-chart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Progress Over Time</h3>
+                        <div class="chart" id="progress-chart"></div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Category Breakdown</h3>
+                        <div class="chart" id="category-chart"></div>
+                    </div>
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <h4>Completion Rate</h4>
+                            <div class="stat-big-number" id="completion-rate">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Average Rating</h4>
+                            <div class="stat-big-number" id="average-rating">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Activities This Week</h4>
+                            <div class="stat-big-number" id="week-activity-count">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-calendar">
+                <div class="tab-header">
+                    <h2>📅 Activity Calendar</h2>
+                    <p>Schedule and plan your activities</p>
+                </div>
+                <div class="calendar-container">
+                    <div class="calendar-controls">
+                        <button id="calendar-prev">←</button>
+                        <h3 id="calendar-month-year"></h3>
+                        <button id="calendar-next">→</button>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Calendar will be populated by JavaScript -->
+                    </div>
+                    <div class="calendar-legend">
+                        <div class="legend-item"><span class="legend-color level-3"></span> Level 3</div>
+                        <div class="legend-item"><span class="legend-color level-2"></span> Level 2</div>
+                        <div class="legend-item"><span class="legend-color level-1"></span> Level 1</div>
+                    </div>
+                </div>
             </div>
 
             <div class="tab-content" id="tab-checked">
@@ -210,6 +352,58 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Details Modal -->
+    <div class="modal" id="activity-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">✕</button>
+            <div class="modal-header">
+                <div class="modal-activity-icon" id="modal-icon"></div>
+                <h2 id="modal-activity-name"></h2>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h3>Current Rating</h3>
+                    <div class="modal-rating" id="modal-rating"></div>
+                </div>
+                <div class="modal-section">
+                    <h3>Notes</h3>
+                    <div class="modal-notes" id="modal-notes"></div>
+                </div>
+                <div class="modal-section">
+                    <h3>History</h3>
+                    <div class="modal-history" id="modal-history"></div>
+                </div>
+                <div class="modal-section">
+                    <h3>Tags</h3>
+                    <div class="modal-tags" id="modal-tags"></div>
+                    <input type="text" id="modal-tag-input" class="tag-input" placeholder="Add tag...">
+                </div>
+                <div class="modal-section">
+                    <h3>Related Activities</h3>
+                    <div class="modal-related" id="modal-related"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="share-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="share-modal-close">✕</button>
+            <h2>Share Your Activity List</h2>
+            <div class="share-options">
+                <button class="share-option-btn" id="copy-link-btn">📋 Copy Link</button>
+                <button class="share-option-btn" id="share-twitter-btn">🐦 Twitter</button>
+                <button class="share-option-btn" id="share-facebook-btn">📘 Facebook</button>
+                <button class="share-option-btn" id="share-email-btn">📧 Email</button>
+            </div>
+            <div class="share-link-container">
+                <input type="text" id="share-link-input" class="share-link-input" readonly>
+                <button class="copy-btn" id="copy-link-btn-2">Copy</button>
             </div>
         </div>
     </div>

@@ -908,6 +908,12 @@ let activities = [
 
 // State management
 let activityState = {};
+let activityHistory = {};
+let activityTags = {};
+let activitySchedule = {};
+let selectedActivities = new Set();
+let bulkSelectMode = false;
+let currentTheme = 'light';
 
 // Initialize state from localStorage or cloud, then create new if needed
 async function initState() {
@@ -1201,6 +1207,32 @@ function renderActivities() {
     document.querySelectorAll('.level-btn').forEach(btn => {
         btn.addEventListener('click', handleEnjoymentLevel);
     });
+    
+    // Add bulk select checkboxes
+    if (bulkSelectMode) {
+        document.querySelectorAll('.bulk-select-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', handleBulkSelect);
+        });
+    }
+    
+    // Add activity details buttons
+    document.querySelectorAll('.activity-details-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            openActivityModal(e.target.dataset.activity);
+        });
+    });
+    
+    // Make activity items clickable for details
+    document.querySelectorAll('.activity-text, .activity-image-wrapper').forEach(el => {
+        el.addEventListener('click', (e) => {
+            if (!bulkSelectMode) {
+                const activity = e.target.dataset.activity || e.target.closest('[data-activity]')?.dataset.activity;
+                if (activity) {
+                    openActivityModal(activity);
+                }
+            }
+        });
+    });
 }
 
 // Handle checkbox change
@@ -1210,6 +1242,8 @@ function handleCheck(e) {
         activityState[activity] = { checked: false, enjoymentLevel: null };
     }
     activityState[activity].checked = e.target.checked;
+    
+    recordActivityHistory(activity, e.target.checked ? 'checked' : 'unchecked', null);
     
     const item = e.target.closest('.activity-item');
     if (e.target.checked) {
@@ -1233,10 +1267,13 @@ function handleEnjoymentLevel(e) {
     }
     
     // Toggle: if clicking the same level, remove it
+    const oldLevel = activityState[activity].enjoymentLevel;
     if (activityState[activity].enjoymentLevel === level) {
         activityState[activity].enjoymentLevel = null;
+        recordActivityHistory(activity, 'unrated', null);
     } else {
         activityState[activity].enjoymentLevel = level;
+        recordActivityHistory(activity, 'rated', level);
     }
     
     // Update UI
@@ -1609,17 +1646,66 @@ saveState = function() {
     }
 };
 
+// Helper functions
+// Helper functions
+
+// Load activity schedule
+function loadSchedule() {
+    const saved = localStorage.getItem('activitySchedule');
+    if (saved) {
+        activitySchedule = JSON.parse(saved);
+    }
+}
+
+function saveSchedule() {
+    localStorage.setItem('activitySchedule', JSON.stringify(activitySchedule));
+}
+
 // Initialize (async)
 async function initialize() {
     loadActivities();
     await initState(); // Wait for state initialization
+    loadActivityHistory();
+    loadTags();
+    loadSchedule();
+    initDarkMode();
     initSearch();
     initSort();
     initQuickActions();
     initNotes();
+    initAdvancedSearch();
+    initShare();
+    initPrint();
     renderActivities();
     updateStats();
     initSuggestions();
+    
+    // Initialize bulk actions
+    document.getElementById('bulk-select-toggle')?.addEventListener('click', toggleBulkSelectMode);
+    document.getElementById('bulk-check-btn')?.addEventListener('click', () => bulkAction('check'));
+    document.getElementById('bulk-uncheck-btn')?.addEventListener('click', () => bulkAction('uncheck'));
+    document.getElementById('bulk-rate-3-btn')?.addEventListener('click', () => bulkAction('rate', 3));
+    document.getElementById('bulk-rate-2-btn')?.addEventListener('click', () => bulkAction('rate', 2));
+    document.getElementById('bulk-rate-1-btn')?.addEventListener('click', () => bulkAction('rate', 1));
+    document.getElementById('bulk-clear-btn')?.addEventListener('click', () => bulkAction('clear'));
+    
+    // Calendar controls
+    document.getElementById('calendar-prev')?.addEventListener('click', () => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+        renderCalendar();
+    });
+    document.getElementById('calendar-next')?.addEventListener('click', () => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+        renderCalendar();
+    });
+    
+    // Modal close
+    document.getElementById('modal-close')?.addEventListener('click', closeActivityModal);
+    document.getElementById('activity-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'activity-modal') {
+            closeActivityModal();
+        }
+    });
     
     // Show sync indicator
     setTimeout(() => {
@@ -1899,6 +1985,736 @@ function initNotes() {
     }
 }
 
+// ========== DARK MODE ==========
+function initDarkMode() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    currentTheme = savedTheme;
+    applyTheme(savedTheme);
+    
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+}
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(currentTheme);
+    localStorage.setItem('theme', currentTheme);
+}
+
+function applyTheme(theme) {
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+    const themeIcon = document.getElementById('theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+}
+
+// ========== ACTIVITY HISTORY ==========
+function recordActivityHistory(activity, action, value) {
+    if (!activityHistory[activity]) {
+        activityHistory[activity] = [];
+    }
+    
+    activityHistory[activity].push({
+        action: action, // 'rated', 'checked', 'unchecked', 'unrated'
+        value: value,
+        timestamp: new Date().toISOString()
+    });
+    
+    localStorage.setItem('activityHistory', JSON.stringify(activityHistory));
+}
+
+function loadActivityHistory() {
+    const saved = localStorage.getItem('activityHistory');
+    if (saved) {
+        activityHistory = JSON.parse(saved);
+    }
+}
+
+// ========== TAGS SYSTEM ==========
+function loadTags() {
+    const saved = localStorage.getItem('activityTags');
+    if (saved) {
+        activityTags = JSON.parse(saved);
+    }
+}
+
+function saveTags() {
+    localStorage.setItem('activityTags', JSON.stringify(activityTags));
+}
+
+function addTag(activity, tag) {
+    if (!activity || !tag.trim()) return;
+    
+    if (!activityTags[activity]) {
+        activityTags[activity] = [];
+    }
+    
+    const tagLower = tag.trim().toLowerCase();
+    if (!activityTags[activity].includes(tagLower)) {
+        activityTags[activity].push(tagLower);
+        saveTags();
+    }
+}
+
+function removeTag(activity, tag) {
+    if (activityTags[activity]) {
+        activityTags[activity] = activityTags[activity].filter(t => t !== tag);
+        if (activityTags[activity].length === 0) {
+            delete activityTags[activity];
+        }
+        saveTags();
+    }
+}
+
+// ========== CATEGORIES ==========
+function getActivityCategory(activity) {
+    const lower = activity.toLowerCase();
+    if (lower.includes('running') || lower.includes('cycling') || lower.includes('swimming') || 
+        lower.includes('gym') || lower.includes('fitness') || lower.includes('sport') ||
+        lower.includes('basketball') || lower.includes('tennis') || lower.includes('golf')) {
+        return 'Sports & Fitness';
+    }
+    if (lower.includes('painting') || lower.includes('drawing') || lower.includes('art') ||
+        lower.includes('music') || lower.includes('writing') || lower.includes('photography') ||
+        lower.includes('craft') || lower.includes('pottery')) {
+        return 'Creative Arts';
+    }
+    if (lower.includes('cooking') || lower.includes('baking') || lower.includes('restaurant') ||
+        lower.includes('food') || lower.includes('wine') || lower.includes('coffee')) {
+        return 'Food & Drink';
+    }
+    if (lower.includes('reading') || lower.includes('book') || lower.includes('learning') ||
+        lower.includes('course') || lower.includes('podcast') || lower.includes('language')) {
+        return 'Learning & Education';
+    }
+    if (lower.includes('travel') || lower.includes('camping') || lower.includes('hiking') ||
+        lower.includes('beach') || lower.includes('outdoor') || lower.includes('nature')) {
+        return 'Travel & Outdoor';
+    }
+    if (lower.includes('game') || lower.includes('puzzle') || lower.includes('chess') ||
+        lower.includes('board') || lower.includes('card') || lower.includes('video')) {
+        return 'Games & Entertainment';
+    }
+    if (lower.includes('social') || lower.includes('friend') || lower.includes('volunteer') ||
+        lower.includes('party') || lower.includes('event') || lower.includes('club')) {
+        return 'Social & Community';
+    }
+    if (lower.includes('spa') || lower.includes('massage') || lower.includes('wellness') ||
+        lower.includes('meditation') || lower.includes('yoga') || lower.includes('therapy')) {
+        return 'Wellness & Self-Care';
+    }
+    if (lower.includes('coding') || lower.includes('programming') || lower.includes('tech') ||
+        lower.includes('digital') || lower.includes('online') || lower.includes('app')) {
+        return 'Technology & Digital';
+    }
+    return 'Other';
+}
+
+function getCategories() {
+    const categories = new Set();
+    activities.forEach(activity => {
+        categories.add(getActivityCategory(activity));
+    });
+    return Array.from(categories).sort();
+}
+
+// ========== BULK ACTIONS ==========
+function toggleBulkSelectMode() {
+    bulkSelectMode = !bulkSelectMode;
+    selectedActivities.clear();
+    
+    const toggleBtn = document.getElementById('bulk-select-toggle');
+    const bulkBar = document.getElementById('bulk-actions-bar');
+    
+    if (toggleBtn) {
+        toggleBtn.classList.toggle('active', bulkSelectMode);
+        toggleBtn.textContent = bulkSelectMode ? 'Cancel Selection' : 'Select Multiple';
+    }
+    
+    if (bulkBar) {
+        bulkBar.style.display = bulkSelectMode ? 'flex' : 'none';
+    }
+    
+    renderActivities();
+}
+
+function handleBulkSelect(e) {
+    const activity = e.target.dataset.activity;
+    if (e.target.checked) {
+        selectedActivities.add(activity);
+    } else {
+        selectedActivities.delete(activity);
+    }
+    updateBulkSelectionCount();
+}
+
+function updateBulkSelectionCount() {
+    const countEl = document.getElementById('bulk-selection-count');
+    if (countEl) {
+        countEl.textContent = `${selectedActivities.size} selected`;
+    }
+}
+
+function bulkAction(action, value) {
+    if (selectedActivities.size === 0) return;
+    
+    selectedActivities.forEach(activity => {
+        if (!activityState[activity]) {
+            activityState[activity] = { checked: false, enjoymentLevel: null };
+        }
+        
+        switch(action) {
+            case 'check':
+                activityState[activity].checked = true;
+                recordActivityHistory(activity, 'checked', null);
+                break;
+            case 'uncheck':
+                activityState[activity].checked = false;
+                recordActivityHistory(activity, 'unchecked', null);
+                break;
+            case 'rate':
+                activityState[activity].enjoymentLevel = value;
+                recordActivityHistory(activity, 'rated', value);
+                break;
+            case 'clear':
+                activityState[activity].enjoymentLevel = null;
+                recordActivityHistory(activity, 'unrated', null);
+                break;
+        }
+    });
+    
+    saveState();
+    selectedActivities.clear();
+    toggleBulkSelectMode();
+    renderActivities();
+    updateStats();
+}
+
+// ========== ACTIVITY MODAL ==========
+function openActivityModal(activity) {
+    const modal = document.getElementById('activity-modal');
+    if (!modal) return;
+    
+    const state = activityState[activity] || { checked: false, enjoymentLevel: null };
+    const icon = getActivityIcon(activity);
+    const notes = activityNotes[activity] || [];
+    const history = activityHistory[activity] || [];
+    const tags = activityTags[activity] || [];
+    
+    document.getElementById('modal-icon').textContent = icon;
+    document.getElementById('modal-activity-name').textContent = activity;
+    
+    // Rating
+    const ratingEl = document.getElementById('modal-rating');
+    if (state.enjoymentLevel) {
+        ratingEl.innerHTML = `<span class="rating-badge level-${state.enjoymentLevel}">Level ${state.enjoymentLevel}</span>`;
+    } else {
+        ratingEl.innerHTML = '<span class="rating-badge">Not rated</span>';
+    }
+    
+    // Notes
+    const notesEl = document.getElementById('modal-notes');
+    if (notes.length > 0) {
+        notesEl.innerHTML = notes.map(note => `
+            <div class="modal-note-item">
+                <p>${escapeHtml(note.text)}</p>
+                <small>${formatDate(note.timestamp)}</small>
+            </div>
+        `).join('');
+    } else {
+        notesEl.innerHTML = '<p class="no-data">No notes yet</p>';
+    }
+    
+    // History
+    const historyEl = document.getElementById('modal-history');
+    if (history.length > 0) {
+        historyEl.innerHTML = history.slice(-10).reverse().map(entry => `
+            <div class="modal-history-item">
+                <span class="history-action">${entry.action}</span>
+                ${entry.value ? `<span class="history-value">${entry.value}</span>` : ''}
+                <span class="history-time">${formatDate(entry.timestamp)}</span>
+            </div>
+        `).join('');
+    } else {
+        historyEl.innerHTML = '<p class="no-data">No history</p>';
+    }
+    
+    // Tags
+    const tagsEl = document.getElementById('modal-tags');
+    if (tags.length > 0) {
+        tagsEl.innerHTML = tags.map(tag => `
+            <span class="tag-item">
+                ${tag}
+                <button class="tag-remove" data-activity="${activity}" data-tag="${tag}">✕</button>
+            </span>
+        `).join('');
+    } else {
+        tagsEl.innerHTML = '<p class="no-data">No tags</p>';
+    }
+    
+    // Related activities
+    const relatedEl = document.getElementById('modal-related');
+    const related = generateSuggestions().slice(0, 5).filter(a => a !== activity);
+    if (related.length > 0) {
+        relatedEl.innerHTML = related.map(rel => `
+            <div class="related-activity" data-activity="${rel}">
+                ${getActivityIcon(rel)} ${rel}
+            </div>
+        `).join('');
+    } else {
+        relatedEl.innerHTML = '<p class="no-data">No related activities</p>';
+    }
+    
+    modal.classList.add('active');
+    
+    // Add event listeners
+    document.getElementById('modal-tag-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addTag(activity, e.target.value);
+            e.target.value = '';
+            openActivityModal(activity); // Refresh
+        }
+    });
+    
+    document.querySelectorAll('.tag-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+            removeTag(btn.dataset.activity, btn.dataset.tag);
+            openActivityModal(activity); // Refresh
+        });
+    });
+}
+
+function closeActivityModal() {
+    const modal = document.getElementById('activity-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+// ========== FAVORITES ==========
+function renderFavorites() {
+    const grid = document.getElementById('favorites-grid');
+    if (!grid) return;
+    
+    const favorites = activities.filter(activity => {
+        const state = activityState[activity] || { checked: false, enjoymentLevel: null };
+        return state.enjoymentLevel === 3 && !state.checked;
+    });
+    
+    if (favorites.length === 0) {
+        grid.innerHTML = '<div class="no-favorites">Rate some activities as Level 3 to see them here!</div>';
+        return;
+    }
+    
+    grid.innerHTML = '';
+    favorites.forEach(activity => {
+        const card = document.createElement('div');
+        card.className = 'favorite-card';
+        const icon = getActivityIcon(activity);
+        
+        card.innerHTML = `
+            <div class="favorite-icon">${icon}</div>
+            <h3>${activity}</h3>
+            <button class="favorite-action-btn" data-activity="${activity}">View Details</button>
+        `;
+        
+        card.querySelector('.favorite-action-btn').addEventListener('click', () => {
+            openActivityModal(activity);
+        });
+        
+        grid.appendChild(card);
+    });
+}
+
+// ========== CATEGORIES ==========
+function renderCategories() {
+    const grid = document.getElementById('categories-grid');
+    if (!grid) return;
+    
+    const categories = getCategories();
+    grid.innerHTML = '';
+    
+    categories.forEach(category => {
+        const categoryActivities = activities.filter(a => getActivityCategory(a) === category);
+        const ratedCount = categoryActivities.filter(a => {
+            const state = activityState[a] || { checked: false, enjoymentLevel: null };
+            return state.enjoymentLevel !== null || state.checked;
+        }).length;
+        
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        card.innerHTML = `
+            <h3>${category}</h3>
+            <div class="category-stats">
+                <span>${categoryActivities.length} activities</span>
+                <span>${ratedCount} rated</span>
+            </div>
+            <button class="category-view-btn" data-category="${category}">View Activities</button>
+        `;
+        
+        card.querySelector('.category-view-btn').addEventListener('click', () => {
+            // Switch to activities tab and filter by category
+            document.querySelector('[data-tab="activities"]').click();
+            setTimeout(() => {
+                document.getElementById('category-filter').value = category;
+                renderActivities();
+            }, 100);
+        });
+        
+        grid.appendChild(card);
+    });
+}
+
+// ========== STATISTICS & CHARTS ==========
+function renderStatistics() {
+    renderRatingChart();
+    renderProgressChart();
+    renderCategoryChart();
+    updateStatsSummary();
+}
+
+function renderRatingChart() {
+    const chartEl = document.getElementById('rating-chart');
+    if (!chartEl) return;
+    
+    const level3 = Object.values(activityState).filter(s => s.enjoymentLevel === 3).length;
+    const level2 = Object.values(activityState).filter(s => s.enjoymentLevel === 2).length;
+    const level1 = Object.values(activityState).filter(s => s.enjoymentLevel === 1).length;
+    const checked = Object.values(activityState).filter(s => s.checked).length;
+    const unrated = activities.length - level3 - level2 - level1 - checked;
+    
+    const total = level3 + level2 + level1 + checked + unrated;
+    if (total === 0) {
+        chartEl.innerHTML = '<p class="no-data">No data yet</p>';
+        return;
+    }
+    
+    chartEl.innerHTML = `
+        <div class="chart-bars">
+            <div class="chart-bar">
+                <div class="bar-label">Level 3</div>
+                <div class="bar-container">
+                    <div class="bar-fill level-3-bar" style="width: ${(level3/total)*100}%"></div>
+                    <span class="bar-value">${level3}</span>
+                </div>
+            </div>
+            <div class="chart-bar">
+                <div class="bar-label">Level 2</div>
+                <div class="bar-container">
+                    <div class="bar-fill level-2-bar" style="width: ${(level2/total)*100}%"></div>
+                    <span class="bar-value">${level2}</span>
+                </div>
+            </div>
+            <div class="chart-bar">
+                <div class="bar-label">Level 1</div>
+                <div class="bar-container">
+                    <div class="bar-fill level-1-bar" style="width: ${(level1/total)*100}%"></div>
+                    <span class="bar-value">${level1}</span>
+                </div>
+            </div>
+            <div class="chart-bar">
+                <div class="bar-label">Checked</div>
+                <div class="bar-container">
+                    <div class="bar-fill checked-bar" style="width: ${(checked/total)*100}%"></div>
+                    <span class="bar-value">${checked}</span>
+                </div>
+            </div>
+            <div class="chart-bar">
+                <div class="bar-label">Unrated</div>
+                <div class="bar-container">
+                    <div class="bar-fill unrated-bar" style="width: ${(unrated/total)*100}%"></div>
+                    <span class="bar-value">${unrated}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderProgressChart() {
+    const chartEl = document.getElementById('progress-chart');
+    if (!chartEl) return;
+    
+    // Get last 7 days of activity
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const count = Object.values(activityHistory).reduce((sum, history) => {
+            return sum + history.filter(h => h.timestamp.startsWith(dateStr)).length;
+        }, 0);
+        
+        last7Days.push({ date: dateStr, count });
+    }
+    
+    const maxCount = Math.max(...last7Days.map(d => d.count), 1);
+    
+    chartEl.innerHTML = `
+        <div class="progress-chart">
+            ${last7Days.map(day => `
+                <div class="progress-day">
+                    <div class="progress-bar" style="height: ${(day.count/maxCount)*100}%"></div>
+                    <div class="progress-label">${new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                    <div class="progress-value">${day.count}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function renderCategoryChart() {
+    const chartEl = document.getElementById('category-chart');
+    if (!chartEl) return;
+    
+    const categories = getCategories();
+    const categoryData = categories.map(cat => {
+        const catActivities = activities.filter(a => getActivityCategory(a) === cat);
+        const rated = catActivities.filter(a => {
+            const state = activityState[a] || { checked: false, enjoymentLevel: null };
+            return state.enjoymentLevel !== null || state.checked;
+        }).length;
+        return { category: cat, total: catActivities.length, rated };
+    });
+    
+    chartEl.innerHTML = `
+        <div class="category-chart">
+            ${categoryData.map(data => `
+                <div class="category-chart-item">
+                    <div class="category-name">${data.category}</div>
+                    <div class="category-progress">
+                        <div class="progress-bar" style="width: ${(data.rated/data.total)*100}%"></div>
+                    </div>
+                    <div class="category-numbers">${data.rated}/${data.total}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function updateStatsSummary() {
+    const total = activities.length;
+    const rated = Object.values(activityState).filter(s => s.enjoymentLevel !== null || s.checked).length;
+    const completionRate = total > 0 ? Math.round((rated / total) * 100) : 0;
+    
+    const ratings = Object.values(activityState)
+        .filter(s => s.enjoymentLevel !== null)
+        .map(s => s.enjoymentLevel);
+    const avgRating = ratings.length > 0 
+        ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+        : '0';
+    
+    // Activities this week
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekActivities = Object.values(activityHistory).reduce((sum, history) => {
+        return sum + history.filter(h => new Date(h.timestamp) >= weekAgo).length;
+    }, 0);
+    
+    document.getElementById('completion-rate').textContent = completionRate + '%';
+    document.getElementById('average-rating').textContent = avgRating;
+    document.getElementById('week-activity-count').textContent = weekActivities;
+}
+
+// ========== CALENDAR ==========
+let currentCalendarDate = new Date();
+
+function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    const monthYear = document.getElementById('calendar-month-year');
+    if (!grid || !monthYear) return;
+    
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    
+    monthYear.textContent = currentCalendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
+    
+    grid.innerHTML = '';
+    
+    // Day headers
+    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayHeaders.forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'calendar-day-header';
+        header.textContent = day;
+        grid.appendChild(header);
+    });
+    
+    // Calendar days
+    const currentDate = new Date(startDate);
+    for (let i = 0; i < 42; i++) {
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day';
+        
+        if (currentDate.getMonth() !== month) {
+            dayCell.classList.add('other-month');
+        }
+        
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const scheduled = activitySchedule[dateStr] || [];
+        
+        if (scheduled.length > 0) {
+            dayCell.classList.add('has-activities');
+            const state = activityState[scheduled[0]] || { enjoymentLevel: null };
+            if (state.enjoymentLevel) {
+                dayCell.classList.add(`level-${state.enjoymentLevel}`);
+            }
+        }
+        
+        dayCell.innerHTML = `
+            <div class="day-number">${currentDate.getDate()}</div>
+            <div class="day-activities">${scheduled.length > 0 ? scheduled.length : ''}</div>
+        `;
+        
+        dayCell.addEventListener('click', () => {
+            openDaySchedule(currentDate);
+        });
+        
+        grid.appendChild(dayCell);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+}
+
+function openDaySchedule(date) {
+    const dateStr = date.toISOString().split('T')[0];
+    const scheduled = activitySchedule[dateStr] || [];
+    
+    // Create a simple schedule view
+    alert(`Activities scheduled for ${date.toLocaleDateString()}:\n${scheduled.length > 0 ? scheduled.join('\n') : 'None'}`);
+}
+
+// ========== SHARE FUNCTIONALITY ==========
+function initShare() {
+    const shareBtn = document.getElementById('share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', openShareModal);
+    }
+    
+    document.getElementById('share-modal-close')?.addEventListener('click', closeShareModal);
+    document.getElementById('copy-link-btn')?.addEventListener('click', copyShareLink);
+    document.getElementById('copy-link-btn-2')?.addEventListener('click', copyShareLink);
+}
+
+function openShareModal() {
+    const modal = document.getElementById('share-modal');
+    if (!modal) return;
+    
+    const shareData = {
+        activities: activities,
+        activityState: activityState,
+        timestamp: new Date().toISOString()
+    };
+    
+    const shareString = btoa(JSON.stringify(shareData));
+    const shareUrl = `${window.location.origin}${window.location.pathname}?share=${shareString}`;
+    
+    document.getElementById('share-link-input').value = shareUrl;
+    modal.classList.add('active');
+}
+
+function closeShareModal() {
+    const modal = document.getElementById('share-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function copyShareLink() {
+    const input = document.getElementById('share-link-input');
+    input.select();
+    document.execCommand('copy');
+    showFormMessage('Link copied to clipboard!', 'success');
+}
+
+// ========== PRINT/PDF ==========
+function initPrint() {
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            window.print();
+        });
+    }
+}
+
+// ========== RECOMMENDATIONS ==========
+function getTimeBasedRecommendations() {
+    const hour = new Date().getHours();
+    const recommendations = [];
+    
+    // Morning (6-12)
+    if (hour >= 6 && hour < 12) {
+        recommendations.push(...activities.filter(a => 
+            a.toLowerCase().includes('coffee') || 
+            a.toLowerCase().includes('breakfast') ||
+            a.toLowerCase().includes('morning') ||
+            a.toLowerCase().includes('yoga') ||
+            a.toLowerCase().includes('meditation')
+        ));
+    }
+    // Afternoon (12-17)
+    else if (hour >= 12 && hour < 17) {
+        recommendations.push(...activities.filter(a => 
+            a.toLowerCase().includes('lunch') ||
+            a.toLowerCase().includes('outdoor') ||
+            a.toLowerCase().includes('park') ||
+            a.toLowerCase().includes('walk')
+        ));
+    }
+    // Evening (17-22)
+    else if (hour >= 17 && hour < 22) {
+        recommendations.push(...activities.filter(a => 
+            a.toLowerCase().includes('dinner') ||
+            a.toLowerCase().includes('movie') ||
+            a.toLowerCase().includes('restaurant') ||
+            a.toLowerCase().includes('social')
+        ));
+    }
+    // Night (22-6)
+    else {
+        recommendations.push(...activities.filter(a => 
+            a.toLowerCase().includes('reading') ||
+            a.toLowerCase().includes('movie') ||
+            a.toLowerCase().includes('music') ||
+            a.toLowerCase().includes('relax')
+        ));
+    }
+    
+    return recommendations.slice(0, 5);
+}
+
+// ========== ADVANCED SEARCH ==========
+function initAdvancedSearch() {
+    const filterToggle = document.getElementById('filter-toggle-btn');
+    const filterContent = document.getElementById('advanced-filters-content');
+    
+    if (filterToggle && filterContent) {
+        filterToggle.addEventListener('click', () => {
+            const isVisible = filterContent.style.display !== 'none';
+            filterContent.style.display = isVisible ? 'none' : 'block';
+            filterToggle.textContent = isVisible ? '🔽 Advanced Filters' : '🔼 Advanced Filters';
+        });
+    }
+    
+    // Populate category filter
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) {
+        getCategories().forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            categoryFilter.appendChild(option);
+        });
+    }
+}
+
 // Tab functionality
 function initTabs() {
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -1923,6 +2739,14 @@ function initTabs() {
                 renderCheckedActivities();
             } else if (targetTab === 'chat') {
                 renderNotes();
+            } else if (targetTab === 'favorites') {
+                renderFavorites();
+            } else if (targetTab === 'categories') {
+                renderCategories();
+            } else if (targetTab === 'statistics') {
+                renderStatistics();
+            } else if (targetTab === 'calendar') {
+                renderCalendar();
             }
         });
     });
