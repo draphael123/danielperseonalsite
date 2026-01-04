@@ -121,8 +121,8 @@ function getActivityImage(activity) {
     return `https://source.unsplash.com/200x200/?${searchTerm},activity`;
 }
 
-// List of leisure activities
-const activities = [
+// List of leisure activities (mutable to allow adding new ones)
+let activities = [
     'Reading books',
     'Watching movies',
     'Playing video games',
@@ -1148,8 +1148,104 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     });
 });
 
+// Handle form submission
+function handleFormSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('activity-input');
+    const messageDiv = document.getElementById('form-message');
+    const activityName = input.value.trim();
+    
+    // Validation
+    if (!activityName) {
+        showFormMessage('Please enter an activity name', 'error');
+        return;
+    }
+    
+    if (activityName.length < 2) {
+        showFormMessage('Activity name must be at least 2 characters', 'error');
+        return;
+    }
+    
+    if (activityName.length > 100) {
+        showFormMessage('Activity name must be less than 100 characters', 'error');
+        return;
+    }
+    
+    // Check if activity already exists
+    if (activities.includes(activityName)) {
+        showFormMessage('This activity already exists in the list', 'error');
+        input.focus();
+        return;
+    }
+    
+    // Add activity
+    activities.push(activityName);
+    activityState[activityName] = {
+        checked: false,
+        enjoymentLevel: null
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('activities', JSON.stringify(activities));
+    saveState();
+    
+    // Clear input and show success message
+    input.value = '';
+    showFormMessage(`"${activityName}" added successfully! ✨`, 'success');
+    
+    // Re-render activities
+    renderActivities();
+    updateStats();
+    
+    // Scroll to the new activity
+    setTimeout(() => {
+        const newItem = Array.from(document.querySelectorAll('.activity-item')).find(item => 
+            item.querySelector('.activity-text').textContent === activityName
+        );
+        if (newItem) {
+            newItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newItem.style.animation = 'highlight 1s ease-out';
+        }
+    }, 100);
+}
+
+// Show form message
+function showFormMessage(message, type) {
+    const messageDiv = document.getElementById('form-message');
+    messageDiv.textContent = message;
+    messageDiv.className = `form-message ${type}`;
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        messageDiv.textContent = '';
+        messageDiv.className = 'form-message';
+    }, 3000);
+}
+
+// Load activities from localStorage on init
+function loadActivities() {
+    const saved = localStorage.getItem('activities');
+    if (saved) {
+        try {
+            const savedActivities = JSON.parse(saved);
+            // Merge with existing activities, avoiding duplicates
+            savedActivities.forEach(activity => {
+                if (!activities.includes(activity)) {
+                    activities.push(activity);
+                }
+            });
+        } catch (e) {
+            console.error('Error loading activities:', e);
+        }
+    }
+}
+
 // Initialize
+loadActivities();
 initState();
 renderActivities();
 updateStats();
+
+// Add form event listener
+document.getElementById('add-activity-form').addEventListener('submit', handleFormSubmit);
 

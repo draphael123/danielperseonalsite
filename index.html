@@ -45,6 +45,27 @@
             <button class="filter-btn" data-filter="unrated">Unrated</button>
         </div>
 
+        <div class="add-activity-form-container">
+            <form id="add-activity-form" class="add-activity-form">
+                <h3 class="form-title">Add New Activity</h3>
+                <div class="form-group">
+                    <input 
+                        type="text" 
+                        id="activity-input" 
+                        class="form-input" 
+                        placeholder="Enter activity name..." 
+                        required
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="form-submit-btn">
+                        <span>Add Activity</span>
+                        <span class="submit-icon">➕</span>
+                    </button>
+                </div>
+                <div id="form-message" class="form-message"></div>
+            </form>
+        </div>
+
         <ul class="activities-list" id="activities-list">
             <!-- Activities will be populated by JavaScript -->
         </ul>
