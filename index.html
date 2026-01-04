@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <h1>Leisure Activities for Daniel Raphael</h1>
-            <p class="subtitle">Check off activities you have no interest in • Star activities you have some interest in</p>
+            <p class="subtitle">Check off activities with no interest • Set enjoyment level: 1 (unlikely), 2 (possible), 3 (probable)</p>
         </header>
         
         <div class="stats">
@@ -19,8 +19,16 @@
                 <span class="stat-value" id="total-count">0</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Starred:</span>
-                <span class="stat-value" id="starred-count">0</span>
+                <span class="stat-label">Level 3 (Probable):</span>
+                <span class="stat-value" id="level3-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Level 2 (Possible):</span>
+                <span class="stat-value" id="level2-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Level 1 (Unlikely):</span>
+                <span class="stat-value" id="level1-count">0</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Checked off:</span>
@@ -30,10 +38,11 @@
 
         <div class="filter-buttons">
             <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="starred">Starred Only</button>
-            <button class="filter-btn" data-filter="checked">Checked Off Only</button>
-            <button class="filter-btn" data-filter="both">Both (Checked & Starred)</button>
-            <button class="filter-btn" data-filter="active">Active (Neither)</button>
+            <button class="filter-btn" data-filter="level3">Level 3 (Probable)</button>
+            <button class="filter-btn" data-filter="level2">Level 2 (Possible)</button>
+            <button class="filter-btn" data-filter="level1">Level 1 (Unlikely)</button>
+            <button class="filter-btn" data-filter="checked">Checked Off</button>
+            <button class="filter-btn" data-filter="unrated">Unrated</button>
         </div>
 
         <ul class="activities-list" id="activities-list">

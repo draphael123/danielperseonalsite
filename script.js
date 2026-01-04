@@ -791,11 +791,21 @@ function initState() {
     const saved = localStorage.getItem('activityState');
     if (saved) {
         activityState = JSON.parse(saved);
+        // Migrate old starred property to enjoymentLevel if needed
+        Object.keys(activityState).forEach(activity => {
+            if (activityState[activity].starred && !activityState[activity].enjoymentLevel) {
+                activityState[activity].enjoymentLevel = 2; // Default starred to level 2
+            }
+            // Remove old starred property
+            if (activityState[activity].hasOwnProperty('starred')) {
+                delete activityState[activity].starred;
+            }
+        });
     } else {
         activities.forEach(activity => {
             activityState[activity] = {
                 checked: false,
-                starred: false
+                enjoymentLevel: null
             };
         });
     }
@@ -814,7 +824,7 @@ function renderActivities() {
     list.innerHTML = '';
     
     activities.forEach((activity, index) => {
-        const state = activityState[activity] || { checked: false, starred: false };
+        const state = activityState[activity] || { checked: false, enjoymentLevel: null };
         const item = document.createElement('li');
         item.className = 'activity-item';
         
@@ -824,16 +834,22 @@ function renderActivities() {
         if (state.checked) {
             item.classList.add('checked');
         }
-        if (state.starred) {
-            item.classList.add('starred');
+        if (state.enjoymentLevel) {
+            item.classList.add(`level-${state.enjoymentLevel}`);
         }
+        
+        const level1Class = state.enjoymentLevel === 1 ? 'active' : '';
+        const level2Class = state.enjoymentLevel === 2 ? 'active' : '';
+        const level3Class = state.enjoymentLevel === 3 ? 'active' : '';
         
         item.innerHTML = `
             <input type="checkbox" class="checkbox" ${state.checked ? 'checked' : ''} data-activity="${activity}">
             <span class="activity-text">${activity}</span>
-            <button class="star-btn ${state.starred ? 'active' : ''}" data-activity="${activity}">
-                ${state.starred ? '★' : '☆'}
-            </button>
+            <div class="enjoyment-levels">
+                <button class="level-btn level-1-btn ${level1Class}" data-activity="${activity}" data-level="1" title="1 - Unlikely to enjoy">1</button>
+                <button class="level-btn level-2-btn ${level2Class}" data-activity="${activity}" data-level="2" title="2 - Possible to enjoy">2</button>
+                <button class="level-btn level-3-btn ${level3Class}" data-activity="${activity}" data-level="3" title="3 - Probable enjoyment">3</button>
+            </div>
         `;
         
         list.appendChild(item);
@@ -844,8 +860,8 @@ function renderActivities() {
         checkbox.addEventListener('change', handleCheck);
     });
     
-    document.querySelectorAll('.star-btn').forEach(btn => {
-        btn.addEventListener('click', handleStar);
+    document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.addEventListener('click', handleEnjoymentLevel);
     });
 }
 
@@ -853,7 +869,7 @@ function renderActivities() {
 function handleCheck(e) {
     const activity = e.target.dataset.activity;
     if (!activityState[activity]) {
-        activityState[activity] = { checked: false, starred: false };
+        activityState[activity] = { checked: false, enjoymentLevel: null };
     }
     activityState[activity].checked = e.target.checked;
     
@@ -867,25 +883,39 @@ function handleCheck(e) {
     saveState();
 }
 
-// Handle star click
-function handleStar(e) {
+// Handle enjoyment level click
+function handleEnjoymentLevel(e) {
     e.preventDefault();
     e.stopPropagation();
     const activity = e.target.dataset.activity;
-    if (!activityState[activity]) {
-        activityState[activity] = { checked: false, starred: false };
-    }
-    activityState[activity].starred = !activityState[activity].starred;
+    const level = parseInt(e.target.dataset.level);
     
-    const item = e.target.closest('.activity-item');
-    if (activityState[activity].starred) {
-        item.classList.add('starred');
-        e.target.textContent = '★';
-        e.target.classList.add('active');
+    if (!activityState[activity]) {
+        activityState[activity] = { checked: false, enjoymentLevel: null };
+    }
+    
+    // Toggle: if clicking the same level, remove it
+    if (activityState[activity].enjoymentLevel === level) {
+        activityState[activity].enjoymentLevel = null;
     } else {
-        item.classList.remove('starred');
-        e.target.textContent = '☆';
-        e.target.classList.remove('active');
+        activityState[activity].enjoymentLevel = level;
+    }
+    
+    // Update UI
+    const item = e.target.closest('.activity-item');
+    const allLevelBtns = item.querySelectorAll('.level-btn');
+    
+    // Remove all level classes and active states
+    item.classList.remove('level-1', 'level-2', 'level-3', 'starred');
+    allLevelBtns.forEach(btn => btn.classList.remove('active'));
+    
+    // Add appropriate classes
+    if (activityState[activity].enjoymentLevel) {
+        item.classList.add(`level-${activityState[activity].enjoymentLevel}`);
+        const activeBtn = item.querySelector(`.level-${activityState[activity].enjoymentLevel}-btn`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
     }
     
     saveState();
@@ -894,11 +924,15 @@ function handleStar(e) {
 // Update statistics with animation
 function updateStats() {
     const total = activities.length;
-    const starred = Object.values(activityState).filter(s => s.starred).length;
+    const level3 = Object.values(activityState).filter(s => s.enjoymentLevel === 3).length;
+    const level2 = Object.values(activityState).filter(s => s.enjoymentLevel === 2).length;
+    const level1 = Object.values(activityState).filter(s => s.enjoymentLevel === 1).length;
     const checked = Object.values(activityState).filter(s => s.checked).length;
     
     animateValue('total-count', parseInt(document.getElementById('total-count').textContent) || 0, total);
-    animateValue('starred-count', parseInt(document.getElementById('starred-count').textContent) || 0, starred);
+    animateValue('level3-count', parseInt(document.getElementById('level3-count').textContent) || 0, level3);
+    animateValue('level2-count', parseInt(document.getElementById('level2-count').textContent) || 0, level2);
+    animateValue('level1-count', parseInt(document.getElementById('level1-count').textContent) || 0, level1);
     animateValue('checked-count', parseInt(document.getElementById('checked-count').textContent) || 0, checked);
 }
 
@@ -930,32 +964,38 @@ let currentFilter = 'all';
 function updateFilter() {
     document.querySelectorAll('.activity-item').forEach(item => {
         const activity = item.querySelector('.activity-text').textContent;
-        const state = activityState[activity] || { checked: false, starred: false };
+        const state = activityState[activity] || { checked: false, enjoymentLevel: null };
         
         item.classList.remove('hidden');
         
         switch (currentFilter) {
-            case 'starred':
-                // Show only starred activities (regardless of checked status)
-                if (!state.starred) {
+            case 'level3':
+                // Show only level 3 activities
+                if (state.enjoymentLevel !== 3) {
+                    item.classList.add('hidden');
+                }
+                break;
+            case 'level2':
+                // Show only level 2 activities
+                if (state.enjoymentLevel !== 2) {
+                    item.classList.add('hidden');
+                }
+                break;
+            case 'level1':
+                // Show only level 1 activities
+                if (state.enjoymentLevel !== 1) {
                     item.classList.add('hidden');
                 }
                 break;
             case 'checked':
-                // Show only checked off activities (regardless of starred status)
+                // Show only checked off activities
                 if (!state.checked) {
                     item.classList.add('hidden');
                 }
                 break;
-            case 'both':
-                // Show activities that are BOTH checked off AND starred
-                if (!(state.checked && state.starred)) {
-                    item.classList.add('hidden');
-                }
-                break;
-            case 'active':
-                // Show activities that are neither checked nor starred
-                if (state.checked || state.starred) {
+            case 'unrated':
+                // Show activities with no enjoyment level and not checked
+                if (state.enjoymentLevel !== null || state.checked) {
                     item.classList.add('hidden');
                 }
                 break;
