@@ -46,6 +46,14 @@
                     <span>📋</span>
                     <span>List of Activities</span>
                 </button>
+                <button class="tab-btn" data-tab="checked">
+                    <span>✅</span>
+                    <span>Checked Off</span>
+                </button>
+                <button class="tab-btn" data-tab="chat">
+                    <span>💬</span>
+                    <span>Notes & Chat</span>
+                </button>
             </div>
 
             <div class="tab-content active" id="tab-home">
@@ -147,6 +155,61 @@
                 <ul class="activities-list" id="activities-list">
                     <!-- Activities will be populated by JavaScript -->
                 </ul>
+            </div>
+
+            <div class="tab-content" id="tab-checked">
+                <div class="checked-activities-header">
+                    <h2>Checked Off Activities</h2>
+                    <p class="checked-description">Activities you've marked as having no interest</p>
+                </div>
+                <div class="search-sort-container">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input 
+                            type="text" 
+                            id="checked-search-input" 
+                            class="search-input" 
+                            placeholder="Search checked activities..."
+                            autocomplete="off"
+                        >
+                        <button class="search-clear-btn" id="checked-search-clear-btn" style="display: none;">✕</button>
+                    </div>
+                </div>
+                <ul class="activities-list" id="checked-activities-list">
+                    <!-- Checked activities will be populated by JavaScript -->
+                </ul>
+            </div>
+
+            <div class="tab-content" id="tab-chat">
+                <div class="chat-header">
+                    <h2>Notes & Chat</h2>
+                    <p class="chat-description">Add notes, thoughts, or comments about activities</p>
+                </div>
+                <div class="chat-container">
+                    <div class="notes-list" id="notes-list">
+                        <!-- Notes will be populated by JavaScript -->
+                    </div>
+                    <div class="chat-input-container">
+                        <div class="activity-selector">
+                            <label for="note-activity-select">Activity:</label>
+                            <select id="note-activity-select" class="note-activity-select">
+                                <option value="">Select an activity...</option>
+                            </select>
+                        </div>
+                        <div class="note-input-wrapper">
+                            <textarea 
+                                id="note-input" 
+                                class="note-input" 
+                                placeholder="Write a note about this activity..."
+                                rows="4"
+                            ></textarea>
+                            <button class="note-submit-btn" id="note-submit-btn">
+                                <span>💬</span>
+                                <span>Add Note</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

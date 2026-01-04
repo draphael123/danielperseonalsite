@@ -1616,12 +1616,15 @@ async function initialize() {
     initSearch();
     initSort();
     initQuickActions();
+    initNotes();
     renderActivities();
     updateStats();
     initSuggestions();
     
     // Show sync indicator
-    showSyncStatus('Synced', 'success');
+    setTimeout(() => {
+        showSyncStatus('Synced', 'success');
+    }, 500);
 }
 
 // Tab functionality
