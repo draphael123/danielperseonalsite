@@ -1,3 +1,126 @@
+// Activity to emoji/icon mapping
+function getActivityIcon(activity) {
+    const lowerActivity = activity.toLowerCase();
+    
+    // Sports & Fitness
+    if (lowerActivity.includes('running') || lowerActivity.includes('jogging') || lowerActivity.includes('marathon')) return '🏃';
+    if (lowerActivity.includes('cycling') || lowerActivity.includes('bike')) return '🚴';
+    if (lowerActivity.includes('swimming') || lowerActivity.includes('dive')) return '🏊';
+    if (lowerActivity.includes('hiking') || lowerActivity.includes('trail')) return '🥾';
+    if (lowerActivity.includes('yoga') || lowerActivity.includes('meditation')) return '🧘';
+    if (lowerActivity.includes('gym') || lowerActivity.includes('workout') || lowerActivity.includes('fitness')) return '💪';
+    if (lowerActivity.includes('basketball')) return '🏀';
+    if (lowerActivity.includes('soccer') || lowerActivity.includes('football')) return '⚽';
+    if (lowerActivity.includes('tennis')) return '🎾';
+    if (lowerActivity.includes('golf')) return '⛳';
+    if (lowerActivity.includes('volleyball')) return '🏐';
+    if (lowerActivity.includes('baseball') || lowerActivity.includes('softball')) return '⚾';
+    if (lowerActivity.includes('hockey') || lowerActivity.includes('ice')) return '🏒';
+    if (lowerActivity.includes('skiing') || lowerActivity.includes('snowboard')) return '⛷️';
+    if (lowerActivity.includes('surfing') || lowerActivity.includes('surf')) return '🏄';
+    if (lowerActivity.includes('skateboard')) return '🛹';
+    if (lowerActivity.includes('climbing') || lowerActivity.includes('rock')) return '🧗';
+    if (lowerActivity.includes('boxing') || lowerActivity.includes('martial')) return '🥊';
+    if (lowerActivity.includes('dancing') || lowerActivity.includes('dance')) return '💃';
+    
+    // Water Activities
+    if (lowerActivity.includes('sailing') || lowerActivity.includes('boat')) return '⛵';
+    if (lowerActivity.includes('kayak') || lowerActivity.includes('canoe')) return '🛶';
+    if (lowerActivity.includes('fishing')) return '🎣';
+    if (lowerActivity.includes('beach') || lowerActivity.includes('ocean')) return '🏖️';
+    
+    // Creative Arts
+    if (lowerActivity.includes('painting') || lowerActivity.includes('drawing') || lowerActivity.includes('art')) return '🎨';
+    if (lowerActivity.includes('photography') || lowerActivity.includes('photo')) return '📸';
+    if (lowerActivity.includes('music') || lowerActivity.includes('instrument') || lowerActivity.includes('singing')) return '🎵';
+    if (lowerActivity.includes('writing') || lowerActivity.includes('blog') || lowerActivity.includes('journal')) return '✍️';
+    if (lowerActivity.includes('pottery') || lowerActivity.includes('ceramic')) return '🏺';
+    if (lowerActivity.includes('sculpting') || lowerActivity.includes('sculpture')) return '🗿';
+    if (lowerActivity.includes('crafting') || lowerActivity.includes('craft')) return '🪡';
+    if (lowerActivity.includes('knitting') || lowerActivity.includes('crochet')) return '🧶';
+    if (lowerActivity.includes('sewing')) return '🧵';
+    if (lowerActivity.includes('woodworking') || lowerActivity.includes('wood')) return '🪵';
+    if (lowerActivity.includes('jewelry') || lowerActivity.includes('beading')) return '💎';
+    
+    // Food & Drink
+    if (lowerActivity.includes('cooking') || lowerActivity.includes('baking') || lowerActivity.includes('chef')) return '👨‍🍳';
+    if (lowerActivity.includes('restaurant') || lowerActivity.includes('dining')) return '🍽️';
+    if (lowerActivity.includes('coffee') || lowerActivity.includes('cafe')) return '☕';
+    if (lowerActivity.includes('wine') || lowerActivity.includes('beer') || lowerActivity.includes('cocktail')) return '🍷';
+    if (lowerActivity.includes('food') || lowerActivity.includes('meal')) return '🍕';
+    
+    // Games & Entertainment
+    if (lowerActivity.includes('video game') || lowerActivity.includes('gaming') || lowerActivity.includes('esport')) return '🎮';
+    if (lowerActivity.includes('board game') || lowerActivity.includes('tabletop')) return '🎲';
+    if (lowerActivity.includes('card game') || lowerActivity.includes('poker') || lowerActivity.includes('cards')) return '🃏';
+    if (lowerActivity.includes('chess')) return '♟️';
+    if (lowerActivity.includes('puzzle') || lowerActivity.includes('sudoku')) return '🧩';
+    if (lowerActivity.includes('bowling')) return '🎳';
+    if (lowerActivity.includes('arcade')) return '🕹️';
+    if (lowerActivity.includes('escape room')) return '🚪';
+    if (lowerActivity.includes('karaoke')) return '🎤';
+    if (lowerActivity.includes('movie') || lowerActivity.includes('film') || lowerActivity.includes('cinema')) return '🎬';
+    
+    // Reading & Learning
+    if (lowerActivity.includes('reading') || lowerActivity.includes('book') || lowerActivity.includes('library')) return '📚';
+    if (lowerActivity.includes('learning') || lowerActivity.includes('course') || lowerActivity.includes('study')) return '📖';
+    if (lowerActivity.includes('language')) return '🗣️';
+    if (lowerActivity.includes('podcast')) return '🎧';
+    
+    // Travel & Exploration
+    if (lowerActivity.includes('travel') || lowerActivity.includes('trip') || lowerActivity.includes('vacation')) return '✈️';
+    if (lowerActivity.includes('camping') || lowerActivity.includes('tent')) return '⛺';
+    if (lowerActivity.includes('hiking') || lowerActivity.includes('mountain')) return '⛰️';
+    if (lowerActivity.includes('museum') || lowerActivity.includes('gallery')) return '🏛️';
+    if (lowerActivity.includes('theater') || lowerActivity.includes('theatre') || lowerActivity.includes('play')) return '🎭';
+    if (lowerActivity.includes('concert') || lowerActivity.includes('music festival')) return '🎪';
+    
+    // Nature & Outdoors
+    if (lowerActivity.includes('gardening') || lowerActivity.includes('garden')) return '🌱';
+    if (lowerActivity.includes('bird') || lowerActivity.includes('wildlife')) return '🦅';
+    if (lowerActivity.includes('stargazing') || lowerActivity.includes('astronomy')) return '⭐';
+    if (lowerActivity.includes('nature') || lowerActivity.includes('outdoor')) return '🌲';
+    if (lowerActivity.includes('walk') || lowerActivity.includes('hike')) return '🚶';
+    
+    // Social & Community
+    if (lowerActivity.includes('volunteer') || lowerActivity.includes('charity')) return '🤝';
+    if (lowerActivity.includes('social') || lowerActivity.includes('friend')) return '👥';
+    if (lowerActivity.includes('party') || lowerActivity.includes('celebration')) return '🎉';
+    
+    // Technology & Digital
+    if (lowerActivity.includes('coding') || lowerActivity.includes('programming') || lowerActivity.includes('development')) return '💻';
+    if (lowerActivity.includes('3d printing') || lowerActivity.includes('maker')) return '🖨️';
+    if (lowerActivity.includes('drone')) return '🚁';
+    if (lowerActivity.includes('video') || lowerActivity.includes('film making')) return '📹';
+    
+    // Collecting & Hobbies
+    if (lowerActivity.includes('collecting') || lowerActivity.includes('collection')) return '📦';
+    if (lowerActivity.includes('stamp') || lowerActivity.includes('coin')) return '🪙';
+    
+    // Pets & Animals
+    if (lowerActivity.includes('pet') || lowerActivity.includes('dog') || lowerActivity.includes('cat')) return '🐾';
+    if (lowerActivity.includes('horse') || lowerActivity.includes('equestrian')) return '🐴';
+    
+    // Wellness & Self-Care
+    if (lowerActivity.includes('spa') || lowerActivity.includes('massage') || lowerActivity.includes('wellness')) return '🧖';
+    if (lowerActivity.includes('meditation') || lowerActivity.includes('mindfulness')) return '🧘';
+    
+    // Default icons based on common words
+    if (lowerActivity.includes('class') || lowerActivity.includes('workshop')) return '📝';
+    if (lowerActivity.includes('club') || lowerActivity.includes('group')) return '👥';
+    if (lowerActivity.includes('festival') || lowerActivity.includes('event')) return '🎊';
+    
+    // Fallback to a generic activity icon
+    return '🎯';
+}
+
+// Get activity image URL (using Unsplash API)
+function getActivityImage(activity) {
+    // Use Unsplash Source API for dynamic images based on activity name
+    const searchTerm = encodeURIComponent(activity);
+    return `https://source.unsplash.com/200x200/?${searchTerm},activity`;
+}
+
 // List of leisure activities
 const activities = [
     'Reading books',
@@ -842,7 +965,15 @@ function renderActivities() {
         const level2Class = state.enjoymentLevel === 2 ? 'active' : '';
         const level3Class = state.enjoymentLevel === 3 ? 'active' : '';
         
+        const icon = getActivityIcon(activity);
+        const imageUrl = getActivityImage(activity);
+        
         item.innerHTML = `
+            <div class="activity-image-wrapper">
+                <span class="activity-icon">${icon}</span>
+                <img src="${imageUrl}" alt="${activity}" class="activity-image" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="activity-icon-fallback" style="display: none;">${icon}</span>
+            </div>
             <input type="checkbox" class="checkbox" ${state.checked ? 'checked' : ''} data-activity="${activity}">
             <span class="activity-text">${activity}</span>
             <div class="enjoyment-levels">
