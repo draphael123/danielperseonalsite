@@ -45,6 +45,29 @@
             <button class="filter-btn" data-filter="unrated">Unrated</button>
         </div>
 
+        <div class="suggestions-container" id="suggestions-container">
+            <div class="suggestions-header" id="suggestions-header">
+                <div class="suggestions-title-wrapper">
+                    <span class="suggestions-icon">💡</span>
+                    <h3 class="suggestions-title">Activity Suggestions</h3>
+                    <span class="suggestions-badge" id="suggestions-count">0</span>
+                </div>
+                <button class="suggestions-toggle" id="suggestions-toggle" aria-label="Toggle suggestions">
+                    <span class="toggle-icon">▼</span>
+                </button>
+            </div>
+            <div class="suggestions-content" id="suggestions-content">
+                <p class="suggestions-description">Based on your preferences, here are some activities you might enjoy:</p>
+                <div class="suggestions-list" id="suggestions-list">
+                    <!-- Suggestions will be populated by JavaScript -->
+                </div>
+                <button class="refresh-suggestions-btn" id="refresh-suggestions-btn">
+                    <span>🔄</span>
+                    <span>Refresh Suggestions</span>
+                </button>
+            </div>
+        </div>
+
         <div class="add-activity-form-container">
             <form id="add-activity-form" class="add-activity-form">
                 <h3 class="form-title">Add New Activity</h3>

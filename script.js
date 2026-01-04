@@ -1240,11 +1240,211 @@ function loadActivities() {
     }
 }
 
+// Generate suggestions based on user preferences
+function generateSuggestions() {
+    const suggestions = [];
+    const userPreferences = [];
+    
+    // Get activities user has rated positively (level 2 or 3)
+    Object.keys(activityState).forEach(activity => {
+        const state = activityState[activity];
+        if (state.enjoymentLevel === 2 || state.enjoymentLevel === 3) {
+            userPreferences.push(activity.toLowerCase());
+        }
+    });
+    
+    if (userPreferences.length === 0) {
+        // If no preferences yet, suggest popular activities
+        const popularActivities = [
+            'Reading books', 'Watching movies', 'Going for a walk',
+            'Cooking', 'Photography', 'Listening to music',
+            'Gardening', 'Traveling', 'Swimming', 'Cycling'
+        ];
+        
+        popularActivities.forEach(activity => {
+            if (activities.includes(activity) && 
+                (!activityState[activity] || (!activityState[activity].checked && !activityState[activity].enjoymentLevel))) {
+                suggestions.push(activity);
+            }
+        });
+    } else {
+        // Find similar activities based on keywords
+        const keywords = new Set();
+        userPreferences.forEach(pref => {
+            const words = pref.split(/\s+/);
+            words.forEach(word => {
+                if (word.length > 3) {
+                    keywords.add(word);
+                }
+            });
+        });
+        
+        // Find activities with similar keywords that aren't rated
+        activities.forEach(activity => {
+            const state = activityState[activity] || { checked: false, enjoymentLevel: null };
+            
+            // Skip if already rated or checked off
+            if (state.checked || state.enjoymentLevel !== null) {
+                return;
+            }
+            
+            const lowerActivity = activity.toLowerCase();
+            let matchScore = 0;
+            
+            keywords.forEach(keyword => {
+                if (lowerActivity.includes(keyword)) {
+                    matchScore++;
+                }
+            });
+            
+            // Also check for category matches
+            const categories = {
+                'sport': ['running', 'cycling', 'swimming', 'tennis', 'basketball', 'soccer', 'golf', 'fitness', 'workout'],
+                'creative': ['painting', 'drawing', 'photography', 'music', 'writing', 'crafting', 'art'],
+                'outdoor': ['hiking', 'camping', 'gardening', 'nature', 'beach', 'park'],
+                'food': ['cooking', 'baking', 'restaurant', 'wine', 'coffee'],
+                'social': ['volunteering', 'socializing', 'friends', 'party', 'event'],
+                'learning': ['reading', 'learning', 'course', 'language', 'podcast'],
+                'games': ['video game', 'board game', 'card game', 'puzzle', 'chess']
+            };
+            
+            Object.keys(categories).forEach(category => {
+                const categoryKeywords = categories[category];
+                const userHasCategory = userPreferences.some(pref => 
+                    categoryKeywords.some(keyword => pref.includes(keyword))
+                );
+                const activityMatchesCategory = categoryKeywords.some(keyword => 
+                    lowerActivity.includes(keyword)
+                );
+                
+                if (userHasCategory && activityMatchesCategory) {
+                    matchScore += 2;
+                }
+            });
+            
+            if (matchScore > 0) {
+                suggestions.push({ activity, score: matchScore });
+            }
+        });
+        
+        // Sort by score and get top suggestions
+        suggestions.sort((a, b) => b.score - a.score);
+        return suggestions.slice(0, 6).map(s => s.activity);
+    }
+    
+    return suggestions.slice(0, 6);
+}
+
+// Render suggestions
+function renderSuggestions() {
+    const suggestions = generateSuggestions();
+    const suggestionsList = document.getElementById('suggestions-list');
+    const suggestionsCount = document.getElementById('suggestions-count');
+    
+    suggestionsCount.textContent = suggestions.length;
+    
+    if (suggestions.length === 0) {
+        suggestionsList.innerHTML = '<p class="no-suggestions">Rate some activities to get personalized suggestions!</p>';
+        return;
+    }
+    
+    suggestionsList.innerHTML = '';
+    
+    suggestions.forEach(activity => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'suggestion-item';
+        const icon = getActivityIcon(activity);
+        
+        suggestionItem.innerHTML = `
+            <div class="suggestion-icon">${icon}</div>
+            <span class="suggestion-text">${activity}</span>
+            <button class="suggestion-action-btn" data-activity="${activity}" title="Go to activity">
+                →
+            </button>
+        `;
+        
+        // Add click handler to scroll to activity
+        suggestionItem.querySelector('.suggestion-action-btn').addEventListener('click', () => {
+            scrollToActivity(activity);
+        });
+        
+        suggestionItem.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('suggestion-action-btn')) {
+                scrollToActivity(activity);
+            }
+        });
+        
+        suggestionsList.appendChild(suggestionItem);
+    });
+}
+
+// Scroll to activity in the list
+function scrollToActivity(activityName) {
+    const items = document.querySelectorAll('.activity-item');
+    const targetItem = Array.from(items).find(item => 
+        item.querySelector('.activity-text').textContent === activityName
+    );
+    
+    if (targetItem) {
+        // Remove active filter to show all activities
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            if (btn.dataset.filter === 'all') {
+                btn.classList.add('active');
+                currentFilter = 'all';
+                updateFilter();
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Scroll to item
+        setTimeout(() => {
+            targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetItem.style.animation = 'highlight 1s ease-out';
+        }, 100);
+    }
+}
+
+// Toggle suggestions box
+function toggleSuggestions() {
+    const content = document.getElementById('suggestions-content');
+    const toggle = document.getElementById('suggestions-toggle');
+    const icon = toggle.querySelector('.toggle-icon');
+    
+    content.classList.toggle('collapsed');
+    icon.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+}
+
+// Initialize suggestions
+function initSuggestions() {
+    renderSuggestions();
+    
+    // Add event listeners
+    document.getElementById('suggestions-toggle').addEventListener('click', toggleSuggestions);
+    document.getElementById('refresh-suggestions-btn').addEventListener('click', () => {
+        renderSuggestions();
+        const messageDiv = document.getElementById('form-message');
+        if (messageDiv) {
+            showFormMessage('Suggestions refreshed! ✨', 'success');
+        }
+    });
+}
+
+// Override saveState to update suggestions
+const originalSaveState = saveState;
+saveState = function() {
+    originalSaveState();
+    if (typeof renderSuggestions === 'function') {
+        renderSuggestions();
+    }
+};
+
 // Initialize
 loadActivities();
 initState();
 renderActivities();
 updateStats();
+initSuggestions();
 
 // Add form event listener
 document.getElementById('add-activity-form').addEventListener('submit', handleFormSubmit);

@@ -314,6 +314,227 @@ header h1 {
     justify-content: center;
 }
 
+.suggestions-container {
+    margin: 0 30px 30px;
+    background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+    border-radius: 20px;
+    border: 2px solid rgba(255, 193, 7, 0.3);
+    box-shadow: 
+        0 6px 20px rgba(255, 193, 7, 0.15),
+        0 0 0 1px rgba(255, 193, 7, 0.1) inset;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.suggestions-container:hover {
+    box-shadow: 
+        0 8px 30px rgba(255, 193, 7, 0.25),
+        0 0 0 1px rgba(255, 193, 7, 0.2) inset;
+    border-color: rgba(255, 193, 7, 0.5);
+}
+
+.suggestions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%);
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.suggestions-header:hover {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 193, 7, 0.1) 100%);
+}
+
+.suggestions-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.suggestions-icon {
+    font-size: 1.8rem;
+    filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.suggestions-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.suggestions-badge {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    min-width: 24px;
+    text-align: center;
+}
+
+.suggestions-toggle {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #ff9800;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.suggestions-toggle:hover {
+    background: rgba(255, 152, 0, 0.1);
+    transform: scale(1.1);
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.suggestions-content {
+    padding: 25px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 1000px;
+    overflow: hidden;
+}
+
+.suggestions-content.collapsed {
+    max-height: 0;
+    padding: 0 25px;
+    opacity: 0;
+}
+
+.suggestions-description {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.suggestions-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: white;
+    border-radius: 14px;
+    border: 2px solid rgba(255, 193, 7, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.suggestion-item:hover {
+    transform: translateX(5px) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.2);
+    border-color: rgba(255, 193, 7, 0.4);
+    background: linear-gradient(135deg, #ffffff 0%, #fffbf0 100%);
+}
+
+.suggestion-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.suggestion-text {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.suggestion-action-btn {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.suggestion-action-btn:hover {
+    transform: scale(1.15) rotate(90deg);
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+}
+
+.no-suggestions {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 20px;
+    font-size: 1rem;
+}
+
+.refresh-suggestions-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.refresh-suggestions-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+    background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%);
+}
+
+.refresh-suggestions-btn:active {
+    transform: translateY(0);
+}
+
+.refresh-suggestions-btn span:first-child {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.refresh-suggestions-btn:hover span:first-child {
+    transform: rotate(180deg);
+}
+
 .add-activity-form-container {
     padding: 30px;
     background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
@@ -978,6 +1199,26 @@ header h1 {
     .filter-btn {
         padding: 10px 18px;
         font-size: 0.85rem;
+    }
+    
+    .suggestions-container {
+        margin: 0 20px 20px;
+    }
+    
+    .suggestions-header {
+        padding: 15px 20px;
+    }
+    
+    .suggestions-title {
+        font-size: 1.1rem;
+    }
+    
+    .suggestions-content {
+        padding: 20px;
+    }
+    
+    .suggestions-list {
+        grid-template-columns: 1fr;
     }
     
     .add-activity-form-container {
