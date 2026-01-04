@@ -197,12 +197,35 @@ function updateFilter() {
         
         item.classList.remove('hidden');
         
-        if (currentFilter === 'starred' && !state.starred) {
-            item.classList.add('hidden');
-        } else if (currentFilter === 'checked' && !state.checked) {
-            item.classList.add('hidden');
-        } else if (currentFilter === 'active' && (state.checked || state.starred)) {
-            item.classList.add('hidden');
+        switch (currentFilter) {
+            case 'starred':
+                // Show only starred activities (regardless of checked status)
+                if (!state.starred) {
+                    item.classList.add('hidden');
+                }
+                break;
+            case 'checked':
+                // Show only checked off activities (regardless of starred status)
+                if (!state.checked) {
+                    item.classList.add('hidden');
+                }
+                break;
+            case 'both':
+                // Show activities that are BOTH checked off AND starred
+                if (!(state.checked && state.starred)) {
+                    item.classList.add('hidden');
+                }
+                break;
+            case 'active':
+                // Show activities that are neither checked nor starred
+                if (state.checked || state.starred) {
+                    item.classList.add('hidden');
+                }
+                break;
+            case 'all':
+            default:
+                // Show all activities
+                break;
         }
     });
 }
