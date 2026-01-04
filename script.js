@@ -101,10 +101,13 @@ function renderActivities() {
     const list = document.getElementById('activities-list');
     list.innerHTML = '';
     
-    activities.forEach(activity => {
+    activities.forEach((activity, index) => {
         const state = activityState[activity] || { checked: false, starred: false };
         const item = document.createElement('li');
         item.className = 'activity-item';
+        
+        // Add staggered animation delay
+        item.style.animationDelay = `${index * 0.03}s`;
         
         if (state.checked) {
             item.classList.add('checked');
@@ -176,15 +179,37 @@ function handleStar(e) {
     saveState();
 }
 
-// Update statistics
+// Update statistics with animation
 function updateStats() {
     const total = activities.length;
     const starred = Object.values(activityState).filter(s => s.starred).length;
     const checked = Object.values(activityState).filter(s => s.checked).length;
     
-    document.getElementById('total-count').textContent = total;
-    document.getElementById('starred-count').textContent = starred;
-    document.getElementById('checked-count').textContent = checked;
+    animateValue('total-count', parseInt(document.getElementById('total-count').textContent) || 0, total);
+    animateValue('starred-count', parseInt(document.getElementById('starred-count').textContent) || 0, starred);
+    animateValue('checked-count', parseInt(document.getElementById('checked-count').textContent) || 0, checked);
+}
+
+// Animate number counting
+function animateValue(id, start, end) {
+    const element = document.getElementById(id);
+    const duration = 500;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = Math.floor(start + (end - start) * progress);
+        element.textContent = current;
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = end;
+        }
+    }
+    
+    requestAnimationFrame(update);
 }
 
 // Filter functionality
