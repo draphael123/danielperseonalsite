@@ -1627,6 +1627,278 @@ async function initialize() {
     }, 500);
 }
 
+// Notes/Chat functionality
+let activityNotes = {};
+
+// Load notes from localStorage
+function loadNotes() {
+    const saved = localStorage.getItem('activityNotes');
+    if (saved) {
+        activityNotes = JSON.parse(saved);
+    }
+}
+
+// Save notes to localStorage
+function saveNotes() {
+    localStorage.setItem('activityNotes', JSON.stringify(activityNotes));
+}
+
+// Add note to activity
+function addNote(activity, note) {
+    if (!activity || !note.trim()) return;
+    
+    if (!activityNotes[activity]) {
+        activityNotes[activity] = [];
+    }
+    
+    activityNotes[activity].push({
+        text: note.trim(),
+        timestamp: new Date().toISOString(),
+        id: Date.now().toString()
+    });
+    
+    saveNotes();
+    renderNotes();
+}
+
+// Delete note
+function deleteNote(activity, noteId) {
+    if (activityNotes[activity]) {
+        activityNotes[activity] = activityNotes[activity].filter(n => n.id !== noteId);
+        if (activityNotes[activity].length === 0) {
+            delete activityNotes[activity];
+        }
+        saveNotes();
+        renderNotes();
+    }
+}
+
+// Render notes
+function renderNotes() {
+    const notesList = document.getElementById('notes-list');
+    if (!notesList) return;
+    
+    notesList.innerHTML = '';
+    
+    const notesArray = Object.keys(activityNotes)
+        .map(activity => ({
+            activity,
+            notes: activityNotes[activity]
+        }))
+        .filter(item => item.notes.length > 0)
+        .sort((a, b) => {
+            const lastNoteA = a.notes[a.notes.length - 1].timestamp;
+            const lastNoteB = b.notes[b.notes.length - 1].timestamp;
+            return new Date(lastNoteB) - new Date(lastNoteA);
+        });
+    
+    if (notesArray.length === 0) {
+        notesList.innerHTML = '<div class="no-notes">No notes yet. Add a note to get started!</div>';
+        return;
+    }
+    
+    notesArray.forEach(({ activity, notes }) => {
+        const noteItem = document.createElement('div');
+        noteItem.className = 'note-item';
+        const icon = getActivityIcon(activity);
+        
+        const notesHtml = notes.map(note => `
+            <div class="note-entry">
+                <div class="note-text">${escapeHtml(note.text)}</div>
+                <div class="note-meta">
+                    <span class="note-time">${formatDate(note.timestamp)}</span>
+                    <button class="note-delete-btn" data-activity="${activity}" data-note-id="${note.id}" title="Delete note">✕</button>
+                </div>
+            </div>
+        `).join('');
+        
+        noteItem.innerHTML = `
+            <div class="note-activity-header">
+                <span class="note-activity-icon">${icon}</span>
+                <span class="note-activity-name">${escapeHtml(activity)}</span>
+                <span class="note-count">${notes.length} note${notes.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="notes-container">
+                ${notesHtml}
+            </div>
+        `;
+        
+        notesList.appendChild(noteItem);
+    });
+    
+    // Add delete handlers
+    document.querySelectorAll('.note-delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            deleteNote(btn.dataset.activity, btn.dataset.noteId);
+        });
+    });
+}
+
+// Render checked activities
+function renderCheckedActivities() {
+    const list = document.getElementById('checked-activities-list');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    
+    const checkedActivities = activities.filter(activity => {
+        const state = activityState[activity] || { checked: false };
+        return state.checked;
+    });
+    
+    if (checkedActivities.length === 0) {
+        list.innerHTML = '<li class="no-results">No checked activities yet.</li>';
+        return;
+    }
+    
+    // Apply search if active
+    const searchInput = document.getElementById('checked-search-input');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+    const filtered = searchTerm 
+        ? checkedActivities.filter(a => a.toLowerCase().includes(searchTerm))
+        : checkedActivities;
+    
+    if (filtered.length === 0) {
+        list.innerHTML = '<li class="no-results">No checked activities match your search.</li>';
+        return;
+    }
+    
+    filtered.forEach((activity, index) => {
+        const state = activityState[activity] || { checked: false, enjoymentLevel: null };
+        const item = document.createElement('li');
+        item.className = 'activity-item checked';
+        item.style.animationDelay = `${index * 0.03}s`;
+        
+        const icon = getActivityIcon(activity);
+        const imageUrl = getActivityImage(activity);
+        
+        item.innerHTML = `
+            <div class="activity-image-wrapper">
+                <span class="activity-icon">${icon}</span>
+                <img src="${imageUrl}" alt="${activity}" class="activity-image" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="activity-icon-fallback" style="display: none;">${icon}</span>
+            </div>
+            <input type="checkbox" class="checkbox" checked data-activity="${activity}">
+            <span class="activity-text">${activity}</span>
+            <button class="uncheck-btn" data-activity="${activity}" title="Uncheck activity">
+                ↻ Uncheck
+            </button>
+        `;
+        
+        list.appendChild(item);
+    });
+    
+    // Add event listeners
+    document.querySelectorAll('#checked-activities-list .checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', handleCheck);
+    });
+    
+    document.querySelectorAll('.uncheck-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const activity = e.target.dataset.activity;
+            if (activityState[activity]) {
+                activityState[activity].checked = false;
+                saveState();
+                renderCheckedActivities();
+            }
+        });
+    });
+}
+
+// Helper functions
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+}
+
+// Populate activity selector for notes
+function populateActivitySelector() {
+    const select = document.getElementById('note-activity-select');
+    if (!select) return;
+    
+    // Clear existing options except first
+    select.innerHTML = '<option value="">Select an activity...</option>';
+    
+    // Add all activities
+    activities.forEach(activity => {
+        const option = document.createElement('option');
+        option.value = activity;
+        option.textContent = activity;
+        select.appendChild(option);
+    });
+}
+
+// Initialize notes functionality
+function initNotes() {
+    loadNotes();
+    populateActivitySelector();
+    renderNotes();
+    
+    const noteSubmitBtn = document.getElementById('note-submit-btn');
+    const noteInput = document.getElementById('note-input');
+    const activitySelect = document.getElementById('note-activity-select');
+    
+    if (noteSubmitBtn && noteInput && activitySelect) {
+        noteSubmitBtn.addEventListener('click', () => {
+            const activity = activitySelect.value;
+            const note = noteInput.value;
+            
+            if (!activity) {
+                alert('Please select an activity first');
+                return;
+            }
+            
+            if (!note.trim()) {
+                alert('Please enter a note');
+                return;
+            }
+            
+            addNote(activity, note);
+            noteInput.value = '';
+            activitySelect.value = '';
+        });
+    }
+    
+    // Checked activities search
+    const checkedSearchInput = document.getElementById('checked-search-input');
+    const checkedSearchClear = document.getElementById('checked-search-clear-btn');
+    
+    if (checkedSearchInput) {
+        checkedSearchInput.addEventListener('input', () => {
+            if (checkedSearchClear) {
+                checkedSearchClear.style.display = checkedSearchInput.value ? 'block' : 'none';
+            }
+            renderCheckedActivities();
+        });
+    }
+    
+    if (checkedSearchClear) {
+        checkedSearchClear.addEventListener('click', () => {
+            if (checkedSearchInput) {
+                checkedSearchInput.value = '';
+                checkedSearchClear.style.display = 'none';
+                renderCheckedActivities();
+            }
+        });
+    }
+}
+
 // Tab functionality
 function initTabs() {
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -1644,9 +1916,13 @@ function initTabs() {
             btn.classList.add('active');
             document.getElementById(`tab-${targetTab}`).classList.add('active');
             
-            // If switching to activities tab, ensure activities are rendered
+            // Load content when tab is opened
             if (targetTab === 'activities') {
                 renderActivities();
+            } else if (targetTab === 'checked') {
+                renderCheckedActivities();
+            } else if (targetTab === 'chat') {
+                renderNotes();
             }
         });
     });
