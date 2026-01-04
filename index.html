@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daniel's Leisure Activities</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Leisure Activities for Daniel Raphael</h1>
+            <p class="subtitle">Check off activities you have no interest in • Star activities you have some interest in</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Total:</span>
+                <span class="stat-value" id="total-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Starred:</span>
+                <span class="stat-value" id="starred-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Checked off:</span>
+                <span class="stat-value" id="checked-count">0</span>
+            </div>
+        </div>
+
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="starred">Starred</button>
+            <button class="filter-btn" data-filter="checked">Checked Off</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+        </div>
+
+        <ul class="activities-list" id="activities-list">
+            <!-- Activities will be populated by JavaScript -->
+        </ul>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
