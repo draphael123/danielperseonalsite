@@ -1624,9 +1624,14 @@ async function initialize() {
     showSyncStatus('Synced', 'success');
 }
 
-// Start initialization
-initialize();
-
-// Add form event listener
-document.getElementById('add-activity-form').addEventListener('submit', handleFormSubmit);
+// Start initialization when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initialize();
+        document.getElementById('add-activity-form').addEventListener('submit', handleFormSubmit);
+    });
+} else {
+    initialize();
+    document.getElementById('add-activity-form').addEventListener('submit', handleFormSubmit);
+}
 
