@@ -36,102 +36,119 @@
             </div>
         </div>
 
-        <div class="search-sort-container">
-            <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input 
-                    type="text" 
-                    id="search-input" 
-                    class="search-input" 
-                    placeholder="Search activities..."
-                    autocomplete="off"
-                >
-                <button class="search-clear-btn" id="search-clear-btn" style="display: none;">✕</button>
-            </div>
-            <div class="sort-controls">
-                <label for="sort-select" class="sort-label">Sort:</label>
-                <select id="sort-select" class="sort-select">
-                    <option value="default">Default</option>
-                    <option value="alphabetical">A-Z</option>
-                    <option value="rating-high">Rating (High to Low)</option>
-                    <option value="rating-low">Rating (Low to High)</option>
-                    <option value="unrated-first">Unrated First</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="filter-buttons">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="level3">Level 3 (Probable)</button>
-            <button class="filter-btn" data-filter="level2">Level 2 (Possible)</button>
-            <button class="filter-btn" data-filter="level1">Level 1 (Unlikely)</button>
-            <button class="filter-btn" data-filter="checked">Checked Off</button>
-            <button class="filter-btn" data-filter="unrated">Unrated</button>
-        </div>
-
-        <div class="quick-actions">
-            <button class="action-btn" id="export-btn" title="Export your data (Ctrl+E)">
-                <span>💾</span>
-                <span>Export</span>
-            </button>
-            <button class="action-btn" id="import-btn" title="Import data (Ctrl+I)">
-                <span>📥</span>
-                <span>Import</span>
-            </button>
-            <input type="file" id="import-file-input" accept=".json" style="display: none;">
-            <button class="action-btn" id="clear-all-btn" title="Clear all ratings">
-                <span>🗑️</span>
-                <span>Clear All</span>
-            </button>
-        </div>
-
-        <div class="suggestions-container" id="suggestions-container">
-            <div class="suggestions-header" id="suggestions-header">
-                <div class="suggestions-title-wrapper">
-                    <span class="suggestions-icon">💡</span>
-                    <h3 class="suggestions-title">Activity Suggestions</h3>
-                    <span class="suggestions-badge" id="suggestions-count">0</span>
-                </div>
-                <button class="suggestions-toggle" id="suggestions-toggle" aria-label="Toggle suggestions">
-                    <span class="toggle-icon">▼</span>
+        <div class="tabs-container">
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="home">
+                    <span>🏠</span>
+                    <span>Home</span>
+                </button>
+                <button class="tab-btn" data-tab="activities">
+                    <span>📋</span>
+                    <span>List of Activities</span>
                 </button>
             </div>
-            <div class="suggestions-content" id="suggestions-content">
-                <p class="suggestions-description">Based on your preferences, here are some activities you might enjoy:</p>
-                <div class="suggestions-list" id="suggestions-list">
-                    <!-- Suggestions will be populated by JavaScript -->
-                </div>
-                <button class="refresh-suggestions-btn" id="refresh-suggestions-btn">
-                    <span>🔄</span>
-                    <span>Refresh Suggestions</span>
-                </button>
-            </div>
-        </div>
 
-        <div class="add-activity-form-container">
-            <form id="add-activity-form" class="add-activity-form">
-                <h3 class="form-title">Add New Activity</h3>
-                <div class="form-group">
-                    <input 
-                        type="text" 
-                        id="activity-input" 
-                        class="form-input" 
-                        placeholder="Enter activity name..." 
-                        required
-                        autocomplete="off"
-                    >
-                    <button type="submit" class="form-submit-btn">
-                        <span>Add Activity</span>
-                        <span class="submit-icon">➕</span>
+            <div class="tab-content active" id="tab-home">
+                <div class="quick-actions">
+                    <button class="action-btn" id="export-btn" title="Export your data (Ctrl+E)">
+                        <span>💾</span>
+                        <span>Export</span>
+                    </button>
+                    <button class="action-btn" id="import-btn" title="Import data (Ctrl+I)">
+                        <span>📥</span>
+                        <span>Import</span>
+                    </button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                    <button class="action-btn" id="clear-all-btn" title="Clear all ratings">
+                        <span>🗑️</span>
+                        <span>Clear All</span>
                     </button>
                 </div>
-                <div id="form-message" class="form-message"></div>
-            </form>
-        </div>
 
-        <ul class="activities-list" id="activities-list">
-            <!-- Activities will be populated by JavaScript -->
-        </ul>
+                <div class="suggestions-container" id="suggestions-container">
+                    <div class="suggestions-header" id="suggestions-header">
+                        <div class="suggestions-title-wrapper">
+                            <span class="suggestions-icon">💡</span>
+                            <h3 class="suggestions-title">Activity Suggestions</h3>
+                            <span class="suggestions-badge" id="suggestions-count">0</span>
+                        </div>
+                        <button class="suggestions-toggle" id="suggestions-toggle" aria-label="Toggle suggestions">
+                            <span class="toggle-icon">▼</span>
+                        </button>
+                    </div>
+                    <div class="suggestions-content" id="suggestions-content">
+                        <p class="suggestions-description">Based on your preferences, here are some activities you might enjoy:</p>
+                        <div class="suggestions-list" id="suggestions-list">
+                            <!-- Suggestions will be populated by JavaScript -->
+                        </div>
+                        <button class="refresh-suggestions-btn" id="refresh-suggestions-btn">
+                            <span>🔄</span>
+                            <span>Refresh Suggestions</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="add-activity-form-container">
+                    <form id="add-activity-form" class="add-activity-form">
+                        <h3 class="form-title">Add New Activity</h3>
+                        <div class="form-group">
+                            <input 
+                                type="text" 
+                                id="activity-input" 
+                                class="form-input" 
+                                placeholder="Enter activity name..." 
+                                required
+                                autocomplete="off"
+                            >
+                            <button type="submit" class="form-submit-btn">
+                                <span>Add Activity</span>
+                                <span class="submit-icon">➕</span>
+                            </button>
+                        </div>
+                        <div id="form-message" class="form-message"></div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-activities">
+                <div class="search-sort-container">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            class="search-input" 
+                            placeholder="Search activities..."
+                            autocomplete="off"
+                        >
+                        <button class="search-clear-btn" id="search-clear-btn" style="display: none;">✕</button>
+                    </div>
+                    <div class="sort-controls">
+                        <label for="sort-select" class="sort-label">Sort:</label>
+                        <select id="sort-select" class="sort-select">
+                            <option value="default">Default</option>
+                            <option value="alphabetical">A-Z</option>
+                            <option value="rating-high">Rating (High to Low)</option>
+                            <option value="rating-low">Rating (Low to High)</option>
+                            <option value="unrated-first">Unrated First</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="level3">Level 3 (Probable)</button>
+                    <button class="filter-btn" data-filter="level2">Level 2 (Possible)</button>
+                    <button class="filter-btn" data-filter="level1">Level 1 (Unlikely)</button>
+                    <button class="filter-btn" data-filter="checked">Checked Off</button>
+                    <button class="filter-btn" data-filter="unrated">Unrated</button>
+                </div>
+
+                <ul class="activities-list" id="activities-list">
+                    <!-- Activities will be populated by JavaScript -->
+                </ul>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>

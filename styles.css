@@ -483,6 +483,74 @@ header h1 {
     list-style: none;
 }
 
+.tabs-container {
+    background: white;
+}
+
+.tabs-nav {
+    display: flex;
+    gap: 0;
+    padding: 0 30px;
+    background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 2px solid #e9ecef;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 30px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.tab-btn:hover {
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: white;
+}
+
+.tab-btn span:first-child {
+    font-size: 1.2rem;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .filter-buttons {
     display: flex;
     gap: 12px;
@@ -1398,6 +1466,25 @@ header h1 {
     
     .suggestions-list {
         grid-template-columns: 1fr;
+    }
+    
+    .tabs-nav {
+        padding: 0 15px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab-btn {
+        padding: 15px 20px;
+        font-size: 0.85rem;
+    }
+    
+    .tab-btn span:last-child {
+        display: none;
+    }
+    
+    .tab-btn.active span:last-child {
+        display: inline;
     }
     
     .search-sort-container {

@@ -1624,14 +1624,41 @@ async function initialize() {
     showSyncStatus('Synced', 'success');
 }
 
+// Tab functionality
+function initTabs() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.dataset.tab;
+            
+            // Remove active class from all tabs and contents
+            tabButtons.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            btn.classList.add('active');
+            document.getElementById(`tab-${targetTab}`).classList.add('active');
+            
+            // If switching to activities tab, ensure activities are rendered
+            if (targetTab === 'activities') {
+                renderActivities();
+            }
+        });
+    });
+}
+
 // Start initialization when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initialize();
+        initTabs();
         document.getElementById('add-activity-form').addEventListener('submit', handleFormSubmit);
     });
 } else {
     initialize();
+    initTabs();
     document.getElementById('add-activity-form').addEventListener('submit', handleFormSubmit);
 }
 
